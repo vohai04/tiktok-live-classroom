@@ -1,6 +1,6 @@
 # Lớp học làng · TikTok LIVE
 
-Game lớp học khung dọc 9:16, người xem tham gia bằng bình luận và quà tặng TikTok LIVE. Có phòng giả lập để kiểm tra trước khi phát.
+Lớp học của **Thầy Bình**, khung dọc 9:16, người xem tham gia bằng bình luận và quà tặng TikTok LIVE. Nhân vật thầy giáo khớp với giọng nam Microsoft An trên PC; đường giọng Edge dùng Nam Minh mặc định. Có phòng giả lập để kiểm tra trước khi phát.
 
 ## Chức năng
 

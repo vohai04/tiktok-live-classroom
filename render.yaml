@@ -10,6 +10,6 @@ services:
       - key: CLASSROOM_TTS
         value: edge
       - key: CLASSROOM_VOICE
-        value: vi-VN-HoaiMyNeural
+        value: vi-VN-NamMinhNeural
       - key: ADMIN_PASSWORD
         sync: false

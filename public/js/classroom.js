@@ -146,7 +146,7 @@
     text('atBoard', stagePlayer ? `Đang lên bảng: ${stagePlayer.name}${s.stage.priority?' 🌹':''}` : 'Đăng ký lên bảng qua bình luận');
     const monitorPlayer=s.students.find(p=>p.id===s.monitor?.id);
     const key=monitorPlayer?`${monitorPlayer.id}:${s.monitor.until}`:'';
-    html('monitorSeat',monitorPlayer?`<div class="monitor-ribbon">LỚP TRƯỞNG</div><div class="monitor-halo"></div><span class="monitor-crown">👑</span>${avatar(monitorPlayer,'monitor-avatar')}<div class="monitor-desk"></div><strong class="monitor-name" title="${escape(monitorPlayer.name)}">${escape(monitorPlayer.name)}</strong><span class="monitor-team">Tổ ${monitorPlayer.team+1} · Bàn danh dự</span>`:'<div class="monitor-ribbon">BÀN LỚP TRƯỞNG</div><span class="monitor-vacant-crown">♛</span><div class="monitor-desk"></div><span class="monitor-vacant">Vị trí danh dự<br>cạnh cô giáo</span>');
+    html('monitorSeat',monitorPlayer?`<div class="monitor-ribbon">LỚP TRƯỞNG</div><div class="monitor-halo"></div><span class="monitor-crown">👑</span>${avatar(monitorPlayer,'monitor-avatar')}<div class="monitor-desk"></div><strong class="monitor-name" title="${escape(monitorPlayer.name)}">${escape(monitorPlayer.name)}</strong><span class="monitor-team">Tổ ${monitorPlayer.team+1} · Bàn danh dự</span>`:'<div class="monitor-ribbon">BÀN LỚP TRƯỞNG</div><span class="monitor-vacant-crown">♛</span><div class="monitor-desk"></div><span class="monitor-vacant">Vị trí danh dự<br>cạnh thầy giáo</span>');
     $('monitorSeat').classList.toggle('occupied',!!monitorPlayer);
     if(key!==monitorKey){
       monitorKey=key;clearTimeout(promotionTimer);$('monitorSeat').classList.remove('promoted');

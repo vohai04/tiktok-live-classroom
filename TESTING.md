@@ -48,3 +48,4 @@ Sau kiểm tra cục bộ, dùng chế độ thử nếu tài khoản có. Kiể
 - Chưa kiểm chứng toàn bộ luồng OBS → LIVE Studio → TikTok trên tài khoản người dùng. Kết nối TikTok từng tự ngắt; chưa được xác nhận ổn định cho phiên dài.
 
 Tham khảo: https://obsproject.com/kb/browser-source và https://obsproject.com/kb/virtual-camera-guide
+- Giao diện thầy Bình: đã kiểm tra nền mới, bảng tên thầy, lớp trưởng, vinh danh, tổ trưởng, ghế học sinh và tổng kết ở 1080 px / 390 px; không phát hiện các vùng tên bị chồng. Kiểm tra lại bố cục 120 câu với đồng hồ lớn: qua.

@@ -1,5 +1,5 @@
 /* Fixed regions in a 540 x 960 capture. No speech-caption overlay. */
-.classroom{background:#d6b38b url('/assets/classroom-room-v2.png') center/100% 100% no-repeat;color:#493820}
+.classroom{background:#d6b38b url('/assets/classroom-room-male-v3.png') center/100% 100% no-repeat;color:#493820}
 .classroom:before,.wall-line,.teacher,.podium,.teacher-speech,.chalkboard:after,.chalk,.eraser{display:none}
 .class-header{display:none}
 .school-seal{display:none}.class-header p{font-size:10px;color:#876037}.class-header h1{font-size:27px;color:#754429}.mode-tag{font-size:9px;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#e1e8bd}
@@ -36,6 +36,7 @@
 .seat-moved{position:absolute;top:11px;font-size:7px;color:#886126;background:#fff0bd;padding:2px 4px;border-radius:3px;z-index:4}.desk.is-monitor .desktop{border-color:#c39735}
 .monitor-celebration{position:absolute;top:899px;left:21px;right:21px;min-height:33px;padding:8px 12px;border:2px solid #bd8425;border-radius:7px;background:#fff0bd;color:#85461c;text-align:center;font-size:14px;font-weight:800;z-index:10;animation:monitor-banner .4s ease-out}.monitor-celebration[hidden]{display:none}
 .activity p.monitor{border-color:#d5b65b;color:#8e7134}
+.teacher-nameplate{position:absolute;left:38px;top:531px;width:103px;padding:3px 7px;background:#315978;border:1px solid #d1b472;border-radius:4px;box-shadow:0 2px 0 #704b2b44;color:#fff3d6;text-align:center;font-size:11px;font-weight:700;line-height:14px}.class-info{left:158px}
 .board-meta .timer{font-size:16px;line-height:20px;min-width:88px;padding:2px 6px;font-weight:800;border:1px solid #e5edd055;color:#fff9d9;background:#fff4bd19;white-space:nowrap}.board-meta .timer.urgent{background:#b94732;border-color:#ebaf85}.board-meta .timer.waiting{font-size:12px;background:#466b58;border-color:#adc29e}.board-meta .timer.revealed{font-size:12px;background:#476c52;border-color:#c0d89c}
 @keyframes monitor-arrival{0%,40%{box-shadow:0 0 0 5px #f7db7999,0 0 22px #ffd14b}100%{box-shadow:0 3px 0 #8d602d55}}@keyframes crown-pop{0%{transform:translateY(-15px) scale(.5) rotate(-8deg)}70%{transform:scale(1.2) rotate(-8deg)}100%{transform:rotate(-8deg)}}@keyframes monitor-banner{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 

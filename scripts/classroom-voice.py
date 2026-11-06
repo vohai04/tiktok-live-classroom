@@ -10,7 +10,7 @@ import time
 
 import edge_tts
 
-VOICE = os.environ.get('CLASSROOM_VOICE', 'vi-VN-HoaiMyNeural')
+VOICE = os.environ.get('CLASSROOM_VOICE', 'vi-VN-NamMinhNeural')
 ESPEAK = shutil.which('espeak-ng')
 offline_until = 0
 sys.stdin.reconfigure(encoding='utf-8')

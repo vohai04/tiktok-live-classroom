@@ -29,7 +29,7 @@ Trong **Thử làm học sinh**, nhập tên rồi bấm Điểm danh, Đăng k�
 - `A`, `B`, `C`, `D` hoặc nội dung đáp án đầy đủ (không phân biệt hoa thường): mỗi người một đáp án mỗi câu. Chốt đáp án hoặc hết giờ mới công bố điểm và thời gian trả lời. Đúng +10, sai +0; không có điểm mua bằng quà.
 - Với các lựa chọn chỉ khác dấu (ví dụ “trăn” / “trân”), game ưu tiên nội dung có dấu chính xác. Nếu nhập không dấu còn trùng nhiều lựa chọn, dùng A/B/C/D; game chưa ghi nhận đáp án mơ hồ đó.
 - `vỗ tay`, `cổ vũ`: hiện biểu tượng vỗ tay tại ghế 3 giây, mỗi người cách nhau ít nhất 8 giây.
-- `thành tích`, `điểm của tôi`: cô giáo đọc số câu đúng, điểm và kỷ lục chuỗi đúng của người bình luận; mỗi người tối đa một lần đọc trong 15 giây.
+- `thành tích`, `điểm của tôi`: thầy giáo đọc số câu đúng, điểm và kỷ lục chuỗi đúng của người bình luận; mỗi người tối đa một lần đọc trong 15 giây.
 
 ## Hoạt động trong tiết học
 
@@ -44,7 +44,7 @@ Trong **Thử làm học sinh**, nhập tên rồi bấm Điểm danh, Đăng k�
 ## Quyền từ quà
 
 - Mọi quà: thêm lượt ưu tiên theo số lượng, giữ tối đa 3 lượt trong 10 phút. Quà khi đang chờ sẽ nâng chính lượt đang chờ thành ưu tiên. Tặng quà không tự đăng ký lên bảng; người xem bình luận `lên bảng` để dùng lượt ưu tiên.
-- Quà/combo từ 10 xu: lớp trưởng 2 phút, được chuyển lên bàn danh dự riêng phía trước lớp, có vương miện và bảng tên. Khi nhận chức, màn hình có hiệu ứng chúc mừng và cô giáo xướng tên. Người tặng sau đủ mốc có thể thay thế lớp trưởng. Hết nhiệm kỳ, nhân vật trở về ghế thường. Đây là danh hiệu, không phải quyền quản trị chat.
+- Quà/combo từ 10 xu: lớp trưởng 2 phút, được chuyển lên bàn danh dự riêng phía trước lớp, có vương miện và bảng tên. Khi nhận chức, màn hình có hiệu ứng chúc mừng và thầy giáo xướng tên. Người tặng sau đủ mốc có thể thay thế lớp trưởng. Hết nhiệm kỳ, nhân vật trở về ghế thường. Đây là danh hiệu, không phải quyền quản trị chat.
 - Mốc lớp trưởng và thời gian câu hỏi đổi ở Luật quà & thiết lập. Mốc dùng giá trị xu từ dữ liệu quà TikTok, không phải số tiền người phát nhận được. Nếu sự kiện thiếu giá trị, chỉ cấp ưu tiên cơ bản.
 - Hai lượt ưu tiên xen một lượt thường khi có cả hai hàng; hàng thường hết hạn sau 5 phút. Mỗi người chỉ có một lượt chờ.
 - Combo dùng phần tăng thêm và ID sự kiện để hạn chế tính trùng.
@@ -59,7 +59,7 @@ Server mặc định lắng nghe 0.0.0.0 để điện thoại cùng Wi-Fi mở 
 
 ## Dữ liệu và mã
 
-Điểm, học sinh (tối đa 200/phiên), danh hiệu và hàng chờ nằm trong RAM, mất khi khởi động lại. Thiết lập lưu ở `data/classroom-settings.json`. Danh sách ghế hiển thị 30 người, tự chuyển dãy mỗi 15 giây nếu đông hơn. Âm thanh tổng hợp lưu trong `data/classroom-voice`. Nền lớp học mới ở `public/assets/classroom-room-v2.png` là tài nguyên tạo riêng, không lấy từ ảnh mẫu của trò chơi khác.
+Điểm, học sinh (tối đa 200/phiên), danh hiệu và hàng chờ nằm trong RAM, mất khi khởi động lại. Thiết lập lưu ở `data/classroom-settings.json`. Danh sách ghế hiển thị 30 người, tự chuyển dãy mỗi 15 giây nếu đông hơn. Âm thanh tổng hợp lưu trong `data/classroom-voice`. Nền lớp học mới ở `public/assets/classroom-room-male-v3.png` là tài nguyên tạo riêng, không lấy từ ảnh mẫu của trò chơi khác.
 
 - `classroom-server.cjs`: server HTTP/WebSocket, TikTok và giả lập.
 - `lib/classroom-engine.cjs`: luật chơi, điểm, hàng ưu tiên và quyền quà.
