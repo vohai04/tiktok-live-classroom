@@ -1,0 +1,107 @@
+/* Readable at 1080 × 1920: sizes below use the stage's 540 × 960 coordinate system. */
+.classroom{--text-small:11px;--text-body:13px;--text-label:14px}
+.class-footer{height:80px;padding:4px 6px}
+.class-footer p.help-main{font-size:21px;line-height:26px}
+.class-footer p.help-secondary{font-size:17px;line-height:22px}
+.class-footer #giftRules{font-size:14px;line-height:19px}
+.hand-queue{top:91px;height:40px;padding:2px 8px}
+.hand-queue h3{max-width:420px;line-height:18px}
+.hand-queue h3 #atBoard{font-size:14px}
+.hand-queue span{font-size:13px;line-height:15px}
+.queue-list{line-height:15px;min-height:15px;margin-top:0;gap:7px}
+.queue-chip,.queue-list .empty-note{font-size:12px;max-width:145px}
+.queue-list .empty-note{max-width:none;white-space:nowrap}
+.team-scores{top:135px;height:25px;gap:5px}
+.team-score{font-size:12px;padding:1px 4px;min-width:0;gap:3px}
+.team-score>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-score b{font-size:15px}
+.chalkboard{top:164px;height:230px;padding:6px 10px;display:grid;grid-template-rows:24px minmax(0,1fr) auto auto;gap:5px;background:#214b34f2;border:1px solid #658160;border-radius:5px}
+.board-meta{font-size:12px;gap:6px;min-width:0}
+.board-meta>span:first-child{font-size:15px}
+.board-meta .timer{font-size:20px;line-height:23px;min-width:94px;padding:0 6px}
+.board-meta .timer.waiting,.board-meta .timer.revealed{font-size:15px}
+.chalkboard h2{font-size:30px;line-height:1.08;min-height:0;margin:0;overflow-wrap:anywhere}
+.options{gap:5px}
+.option{min-height:32px;font-size:14px;line-height:1.15;padding:4px 6px;gap:7px;min-width:0}
+.option b{font-size:15px;flex-shrink:0}
+.board-foot{font-size:11px;line-height:13px;margin-top:0;gap:6px;align-items:center}
+.board-foot>span{min-width:0}
+.board-foot>span:last-child{text-align:right}
+.round-winners{padding:6px 8px}
+.round-winners h3{font-size:12px;line-height:15px;margin-bottom:4px}
+.round-winners p{font-size:12px;height:19px;grid-template-columns:12px minmax(0,1fr) 58px 28px;gap:3px}
+.round-winners b{font-size:11px}
+.round-winners small{font-size:10px}
+.round-winners .empty{font-size:13px;line-height:1.5;margin-top:12px}
+.result-note{font-size:11px;line-height:14px;margin-top:5px}
+.round-winners.board-turn{padding:7px 9px}
+.board-turn h3{font-size:14px;line-height:18px;margin-bottom:4px}
+.board-pupil{height:86px;gap:7px}
+.board-pupil .board-avatar{width:48px;height:78px}
+.board-pupil strong{font-size:19px;line-height:23px}
+.board-pupil span{font-size:12px;line-height:17px}
+.board-pupil p{font-size:12px;line-height:16px;height:auto;margin:2px 0}
+.board-pupil small{font-size:11px;line-height:14px;text-align:left}
+.monitor-ribbon{font-size:12px}.monitor-seat.occupied .monitor-ribbon{font-size:13px}
+.monitor-name{font-size:13px;line-height:15px;top:93px;padding:1px 2px}
+.monitor-team{font-size:10px;line-height:12px}
+.monitor-vacant{font-size:11px;line-height:14px;top:61px}
+.teacher-nameplate{font-size:14px;line-height:18px}
+.class-info{font-size:12px}
+.class-info span:last-child{font-size:11px}
+.team-labels{height:36px;gap:6px}
+.team-label{padding:2px 3px}
+.team-label strong{font-size:13px;line-height:16px}
+.team-label>span{font-size:11px;line-height:14px}
+.desks{top:620px}
+.desk-name{font-size:10.5px;line-height:13px;padding:2px;top:-11px;max-width:81px}
+.desk.empty .desk-name{font-size:10px}
+.team-number{font-size:9px;width:12px;height:12px;margin-right:2px}
+.seat-moved{font-size:9px;padding:2px}
+.board-stars,.pupil-streak{font-size:10px;line-height:12px}
+.desk-answer{font-size:12px}
+.lesson-strip{top:905px;height:39px;padding:3px 8px}
+.lesson-strip>div{height:16px;gap:6px}
+.lesson-strip strong{font-size:14px}
+.lesson-strip>div>span{font-size:12px}
+.lesson-strip p{font-size:12px;line-height:15px;margin-top:1px}
+.classroom>#modeTag{font-size:10px;line-height:12px;bottom:2px;padding:0 4px}
+.monitor-celebration{font-size:17px;line-height:22px}
+.lesson-summary{top:164px;height:230px;padding:10px 12px}
+.lesson-summary h2{font-size:29px;line-height:32px}
+.summary-teams{font-size:14px;line-height:18px;margin:3px 0 6px}
+.lesson-summary li{font-size:14px;height:26px;gap:5px}
+.lesson-summary li>span{font-size:12px}
+.lesson-summary li>b{font-size:19px}
+.lesson-summary .summary-empty{font-size:14px}
+.summary-next{font-size:14px;line-height:18px;margin-top:6px}
+.lesson-summary>small{font-size:11px;line-height:14px;margin-top:2px}
+.pause-shade span{font-size:40px}
+
+/* The operator can read and use controls at ordinary desktop zoom, too. */
+.controls{font-size:16px}
+.controls .studio-header>p{font-size:16px;line-height:1.6}
+.controls .studio-header h2{font-size:36px;line-height:1.25}
+.controls button,.controls input{font-size:16px}
+.controls .panel h3{font-size:18px}
+.controls .badge{font-size:12px;line-height:16px}
+.controls .helper,.controls .studio-note{font-size:14px;line-height:1.6}
+.controls .link-button,.controls .settings .danger{font-size:14px}
+.controls label{font-size:14px}
+.controls .answer-buttons button{font-size:23px}
+.controls .gift-buttons button{font-size:14px}
+.controls .gift-buttons small{font-size:12px}
+.controls .gift-buttons span{font-size:29px}
+.controls .leaderboard li{font-size:15px}
+.controls .leaderboard li>span:nth-child(2){min-width:0;overflow-wrap:anywhere}
+.controls .leaderboard b{flex-shrink:0}
+.controls .leaderboard li small{font-size:12px}
+.controls .empty-leader,.controls .activity p{font-size:14px}
+.controls summary{font-size:17px}
+.controls .panel-title{flex-wrap:wrap}
+.controls .quick-actions{flex-wrap:wrap}
+.controls .inline-form{flex-wrap:wrap}
+.controls .inline-form input{flex:1 1 170px}
+.preview-caption{font-size:12px;line-height:17px}
+.toast{font-size:15px;line-height:21px}
+@media(max-width:660px){.controls .studio-header h2{font-size:34px}}

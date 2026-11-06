@@ -5,10 +5,11 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ctext y='32' font-size='32'%3E📚%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="/css/classroom.css">
 <link rel="stylesheet" href="/css/classroom-v2.css?v=13">
+<link rel="stylesheet" href="/css/classroom-large-text.css?v=14">
 <link rel="manifest" href="/classroom.webmanifest">
 <meta name="theme-color" content="#386251"><meta name="apple-mobile-web-app-capable" content="yes">
 <script>if(new URLSearchParams(location.search).get('obs')==='1')document.documentElement.classList.add('obs');</script>
-<script src="/js/classroom.js?v=13" defer></script>
+<script src="/js/classroom.js?v=14" defer></script>
 </head><body>
 <svg class="svg-defs" aria-hidden="true"><defs><symbol id="pupil" viewBox="0 0 90 110">
 <path d="M21 105V76Q21 65 45 65T69 76V105" fill="var(--shirt,#f9fcf9)" stroke="#344a48" stroke-width="2"/>
@@ -47,7 +48,7 @@
 <div id="roundWinners" class="round-winners"></div>
 <div id="teamLabels" class="team-labels"></div><section class="desks" id="desks" aria-label="Học sinh trong lớp"></section><div class="team-scores" id="teamScores"></div>
 <section class="hand-queue"><div><h3><span id="atBoard">LÊN BẢNG · Trả bài riêng, đúng nhận 1 sao</span></h3><span id="queueCount">0 bạn</span></div><div id="queueList" class="queue-list"></div></section>
-<footer class="class-footer"><p class="help-main">Bình luận <b>VÀO LỚP</b> để tham gia</p><p class="help-secondary"><b>LÊN BẢNG</b> trả bài riêng <span>•</span> <b>A/B/C/D</b> trả lời</p><p id="giftRules">🌹 Quà: ưu tiên lên bảng · 10 xu: lớp trưởng</p></footer>
+<footer class="class-footer"><p class="help-main">Bình luận <b>VÀO LỚP</b> để tham gia</p><p class="help-secondary"><b>LÊN BẢNG</b> trả bài <span>•</span> <b>A/B/C/D</b> trả lời</p><p id="giftRules">🌹 Quà: ưu tiên lên bảng · 10 xu: lớp trưởng</p></footer>
 <div class="pause-shade" id="pauseShade" hidden><span>Giờ giải lao ☕</span></div>
 </div></div><div class="preview-caption"><span><i class="connection-dot" id="socketDot"></i> <span id="socketLabel">Đang kết nối màn hình</span></span><a href="/?obs=1" target="_blank" rel="noopener">Mở màn hình OBS ↗</a></div></section>
 <aside class="controls">

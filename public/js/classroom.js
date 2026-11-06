@@ -82,6 +82,17 @@
   }
   const html = (id, value) => { if ($(id).innerHTML !== value) $(id).innerHTML = value; };
   const text = (id, value) => { if ($(id).textContent !== String(value)) $(id).textContent = value; };
+  let questionLayout='';
+  function fitQuestionText(force=false){
+    const el=$('questionText');
+    const key=[el.textContent,el.clientWidth,el.clientHeight,document.fonts.status].join(':');
+    if(!force&&key===questionLayout)return;
+    questionLayout=key;
+    // Keep long prompts larger than the former 25px without entering the answer rows.
+    let size=30;el.style.fontSize=`${size}px`;
+    while(size>27&&el.scrollHeight>el.clientHeight+1){size-=.5;el.style.fontSize=`${size}px`;}
+  }
+  document.fonts.ready.then(()=>{if(latest)fitQuestionText(true);});
   function fit() { $('classroom').style.transform = `scale(${$('classroom').parentElement.clientWidth / 540})`; }
   new ResizeObserver(fit).observe($('classroom').parentElement); fit();
   function toast(message) {
@@ -132,8 +143,9 @@
     $('timerBar').style.width = `${Math.min(100, seconds/(board?(q.revealed?10:25):(q.revealed ? 8 : s.settings.questionSeconds))*100)}%`;
     text('questionText', q.text);
     html('options', q.options.map((option,i) => `<div class="option ${q.revealed ? (i===q.correct ? 'correct':'wrong') : ''}"><b>${'ABCD'[i]}</b><span>${escape(option)}</span></div>`).join(''));
-    text('answerCount', board?(board.result?'Đã kết thúc lượt trả bài':'Chỉ bạn được gọi trả lời'):`${q.answerCount} bạn đã trả lời`);
-    text('boardHint',board?(board.result?q.explain:'Cả lớp: bình luận “vỗ tay”'):q.exhausted?'Chờ bổ sung câu mới':s.waiting?'Chờ mở điều khiển hoặc kết nối LIVE':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
+    text('answerCount', board?(board.result?'Đã kết thúc lượt trả bài':'Bạn được gọi trả lời'):`${q.answerCount} bạn đã trả lời`);
+    text('boardHint',board?(board.result?q.explain:'Cả lớp: “vỗ tay”'):q.exhausted?'Chờ bổ sung câu mới':s.waiting?'Chờ mở điều khiển hoặc kết nối LIVE':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
+    fitQuestionText();
     const n = s.students.length;
     const teamMembers=[0,1,2].map(team=>s.students.filter(p=>p.team===team));
     const pages = Math.max(1,...teamMembers.map(m=>Math.ceil(m.length/10))), page = pages > 1 ? Math.floor(s.now/15000)%pages : 0;
@@ -148,10 +160,10 @@
     }).join(''));
     text('monitor', s.monitor ? `⭐ Lớp trưởng: ${s.monitor.name} · ${Math.max(0,Math.ceil((s.monitor.until-s.now)/1000))}s` : `⭐ Tặng quà từ ${s.settings.monitorCoins} xu → lớp trưởng 2 phút`);
     const stagePlayer = s.students.find(p => p.id === s.stage?.id);
-    text('atBoard', stagePlayer ? `Trả bài: ${stagePlayer.name}${s.stage.priority?' 🌹':''}` : 'LÊN BẢNG · Trả bài riêng, đúng nhận 1 sao');
+    text('atBoard', stagePlayer ? `Trả bài: ${stagePlayer.name}${s.stage.priority?' 🌹':''}` : 'LÊN BẢNG · Trả bài đúng nhận 1 sao');
     const monitorPlayer=s.students.find(p=>p.id===s.monitor?.id);
     const key=monitorPlayer?`${monitorPlayer.id}:${s.monitor.until}`:'';
-    html('monitorSeat',monitorPlayer?`<div class="monitor-ribbon">LỚP TRƯỞNG</div><div class="monitor-halo"></div><span class="monitor-crown">👑</span>${board?.id===monitorPlayer.id?'<span class="monitor-vacant">Đang trả bài<br>trước bảng ↖</span>':avatar(monitorPlayer,'monitor-avatar')}<div class="monitor-desk"></div><strong class="monitor-name" title="${escape(monitorPlayer.name)}">${escape(monitorPlayer.name)}</strong><span class="monitor-team">Tổ ${monitorPlayer.team+1} · Bàn danh dự</span>`:'<div class="monitor-ribbon">BÀN LỚP TRƯỞNG</div><span class="monitor-vacant-crown">♛</span><div class="monitor-desk"></div><span class="monitor-vacant">Vị trí danh dự<br>cạnh thầy giáo</span>');
+    html('monitorSeat',monitorPlayer?`<div class="monitor-ribbon">LỚP TRƯỞNG</div><div class="monitor-halo"></div><span class="monitor-crown">👑</span>${board?.id===monitorPlayer.id?'<span class="monitor-vacant">Đang trả bài<br>trước bảng ↖</span>':avatar(monitorPlayer,'monitor-avatar')}<div class="monitor-desk"></div><strong class="monitor-name" title="${escape(monitorPlayer.name)}">${escape(monitorPlayer.name)}</strong><span class="monitor-team">Tổ ${monitorPlayer.team+1} · Bàn danh dự</span>`:'<div class="monitor-ribbon">LỚP TRƯỞNG</div><span class="monitor-vacant-crown">♛</span><div class="monitor-desk"></div><span class="monitor-vacant">Vị trí danh dự<br>cạnh thầy giáo</span>');
     $('monitorSeat').classList.toggle('occupied',!!monitorPlayer);
     if(key!==monitorKey){
       monitorKey=key;clearTimeout(promotionTimer);$('monitorSeat').classList.remove('promoted');
@@ -163,12 +175,12 @@
     }
     const honor=s.leaderboard.filter(p=>p.correct>0).slice(0,5);
     const showFast=q.revealed&&!lesson.ended&&s.winners.length;
-    html('roundWinners',showFast?`<h3>⚡ Trả lời đúng nhanh nhất câu vừa rồi</h3>${s.winners.slice(0,3).map((p,i)=>`<p class="fast-result"><span class="honor-rank">${i+1}</span><span class="honor-name">${escape(p.name)}</span><b>${(p.elapsed/1000).toFixed(2)}s</b><small>+10</small></p>`).join('')}<div class="result-note">${s.winners.length} bạn đúng · ${s.winners.filter(p=>p.streak>=3).length} bạn có chuỗi từ 3</div>`:`<h3>🏅 Vinh danh · Trả lời đúng nhiều nhất</h3>${honor.length?honor.map((p,i)=>`<p><span class="honor-rank">${i+1}</span><span class="honor-name">${escape(p.name)}</span><b>${p.correct} câu đúng</b><small>${p.score}đ</small></p>`).join(''):'<span class="empty">Chưa có bạn trả lời đúng.<br>Bình luận đáp án để ghi tên lên bảng!</span>'}`);
+    html('roundWinners',showFast?`<h3>⚡ Trả lời đúng nhanh nhất</h3>${s.winners.slice(0,3).map((p,i)=>`<p class="fast-result"><span class="honor-rank">${i+1}</span><span class="honor-name">${escape(p.name)}</span><b>${(p.elapsed/1000).toFixed(2)}s</b><small>+10</small></p>`).join('')}<div class="result-note">${s.winners.length} bạn đúng · ${s.winners.filter(p=>p.streak>=3).length} bạn có chuỗi từ 3</div>`:`<h3>🏅 Vinh danh · Câu đúng</h3>${honor.length?honor.map((p,i)=>`<p><span class="honor-rank">${i+1}</span><span class="honor-name">${escape(p.name)}</span><b>${p.correct} câu</b><small>${p.score}đ</small></p>`).join(''):'<span class="empty">Chưa có bạn trả lời đúng.<br>Bình luận đáp án để ghi tên lên bảng!</span>'}`);
     $('roundWinners').classList.toggle('board-turn',!!board);
     if(board&&stagePlayer){
       const result=board.result,correct=result?.outcome==='correct';
       const verdict=!result?'Lượt trả bài của em':correct?'Chính xác! +1 sao':result.outcome==='wrong'?'Chưa đúng, cố gắng nhé':result.outcome==='timeout'?'Hết giờ trả bài':'Hẹn em ở lượt sau';
-      html('roundWinners',`<h3>${correct?'★':'✎'} ${verdict}</h3><div class="board-pupil">${avatar(stagePlayer,'board-avatar')}<div><strong title="${escape(stagePlayer.name)}">${escape(stagePlayer.name)}</strong><span>Tổ ${stagePlayer.team+1} · ★ ${stagePlayer.boardCorrect||0} sao trả bài</span><p>${result?(stagePlayer.boardCorrect>=3?'🏅 Học sinh bản lĩnh':'Đủ 3 sao → Học sinh bản lĩnh'):'Bình luận A/B/C/D để trả lời'}</p><small>${result?'Cả lớp vỗ tay, mời bạn về chỗ!':'Cả lớp cùng cổ vũ bạn nhé!'}</small></div></div>`);
+      html('roundWinners',`<h3>${correct?'★':'✎'} ${verdict}</h3><div class="board-pupil">${avatar(stagePlayer,'board-avatar')}<div><strong title="${escape(stagePlayer.name)}">${escape(stagePlayer.name)}</strong><span>Tổ ${stagePlayer.team+1} · ★ ${stagePlayer.boardCorrect||0} sao trả bài</span><p>${result?(stagePlayer.boardCorrect>=3?'🏅 Học sinh bản lĩnh':'3 sao → Học sinh bản lĩnh'):'Trả lời A/B/C/D'}</p><small>${result?'Cả lớp vỗ tay, mời bạn về chỗ!':'Cả lớp cùng cổ vũ bạn nhé!'}</small></div></div>`);
     }
     html('teamScores', (s.lessonTeams||s.teams).map((score,i)=>`<div class="team-score team-${i}"><span>Tổ ${i+1} · ${['Măng non','Hoa phượng','Sao nhỏ'][i]}</span><b>${score}đ</b></div>`).join(''));
     html('teamLabels',teamMembers.map((members,i)=>`<div class="team-label team-${i}"><strong>Tổ ${i+1} · ${members.length} bạn</strong><span title="${escape(captains[i]?.name||'')}">${captains[i]?`🏅 ${escape(captains[i].name)}`:'Tổ trưởng: chờ thành tích'}</span></div>`).join(''));
