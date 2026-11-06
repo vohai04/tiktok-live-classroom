@@ -186,7 +186,7 @@
     text('nextBtn',lesson.ended?'Bắt đầu tiết mới':'Câu tiếp theo');
     text('queueCount', `${s.queue.length} bạn`);
     // Display in the same order the fair scheduler will call students.
-    const pending = [...s.queue], ordered = []; let run = s.stage?.priority ? Math.max(1, s.priorityRun || 1) : 0;
+    const pending = [...s.queue], ordered = []; let run = s.priorityRun || 0;
     while(pending.length) {
       const normal = pending.findIndex(p=>!p.priority), priority = pending.findIndex(p=>p.priority);
       const index = priority>=0 && (run<2 || normal<0) ? priority : normal;
