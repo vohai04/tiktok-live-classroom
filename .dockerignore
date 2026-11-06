@@ -1,0 +1,10 @@
+.git
+node_modules
+data
+work
+.env
+.env.*
+*.log
+.venv
+__pycache__
+docs/demo

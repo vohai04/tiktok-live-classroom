@@ -2,23 +2,25 @@ const express = require('express');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const crypto = require('node:crypto');
 const os = require('node:os');
 const { WebSocketServer } = require('ws');
 const { TikTokLiveConnection, WebcastEvent, ControlEvent } = require('tiktok-live-connector');
 const { Classroom } = require('./lib/classroom-engine.cjs');
-const {QuestionDeck,loadHistory,saveHistory} = require('./lib/classroom-question-deck.cjs');
+const {QuestionDeck,validateHistory} = require('./lib/classroom-question-deck.cjs');
+const {HistoryStore}=require('./lib/classroom-history-store.cjs');
+const {createAccess}=require('./lib/classroom-access.cjs');
 const questions=require('./lib/classroom-questions.cjs');
 const { Narrator } = require('./lib/classroom-narrator.cjs');
 const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
 
+async function main(){
 const port = Number(process.env.PORT || 3000);
 const preview=process.env.CLASSROOM_PREVIEW==='1';
-const dataDir=path.join(__dirname,'data',...(preview?['preview']:[]));
+const cloud=process.env.CLASSROOM_CLOUD==='1'||process.env.RENDER==='true';
+const dataDir=path.join(process.env.CLASSROOM_DATA_DIR||path.join(__dirname,'data'),...(preview?['preview']:[]));
 const host = process.env.HOST || '0.0.0.0';
 const localAddresses = new Set(['localhost', '127.0.0.1', ...Object.values(os.networkInterfaces()).flat().filter(n => n.family === 'IPv4').map(n => n.address)]);
-const isLoopback = req => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
-const token = crypto.randomBytes(24).toString('hex');
+const access=createAccess({cloud,password:process.env.ADMIN_PASSWORD||'',publicUrl:process.env.CLASSROOM_PUBLIC_URL||process.env.RENDER_EXTERNAL_URL||'',localOrigins:[...localAddresses].map(host=>`http://${host}:${port}`)});
 const dataFile = path.join(dataDir, 'classroom-settings.json');
 const livePrefsFile=path.join(dataDir,'classroom-live.json');
 let livePrefs={};
@@ -27,32 +29,40 @@ const saveLivePrefs=(username,enabled)=>{fs.mkdirSync(dataDir,{recursive:true});
 let saved = {};
 try { saved = JSON.parse(fs.readFileSync(dataFile, 'utf8')); } catch {}
 const historyFile=process.env.CLASSROOM_HISTORY_FILE || path.join(dataDir,'classroom-question-history.json');
-const deck=new QuestionDeck({questions,history:loadHistory(historyFile),persist:history=>saveHistory(historyFile,history)});
+const historyStore=new HistoryStore({file:historyFile,url:process.env.UPSTASH_REDIS_REST_URL||'',token:process.env.UPSTASH_REDIS_REST_TOKEN||'',key:process.env.CLASSROOM_HISTORY_KEY||`classroom:${preview?'preview':'live'}:question-history`});
+const deck=new QuestionDeck({questions,history:await historyStore.load(),persist:history=>historyStore.save(history)});
 let room = new Classroom({ saved,deck });
+await historyStore.flush();
 let live = { status: 'demo', username: '', error: '', viewers: 0 };
 let connection = null;
 let generation = 0;
 let roomOwner='';
 const combo = new Map();
 const app = express();
+if(cloud)app.set('trust proxy',1);
 app.disable('x-powered-by');
 app.use(express.json({ limit: '32kb' }));
 const server = http.createServer(app);
-// Phones on the same Wi-Fi can subscribe to the read-only stage.
-const wss = new WebSocketServer({ server, path: '/classroom/ws', verifyClient: info => {
-  if (!info.origin) return true;
-  try { const url = new URL(info.origin); return url.protocol === 'http:' && localAddresses.has(url.hostname) && (url.port || '80') === String(port); }
-  catch { return false; }
+// The stage is read-only. Browser origins must match the configured public URL.
+const wss = new WebSocketServer({ server, path: '/classroom/ws',maxPayload:1024, verifyClient: info => {
+  return access.wsOriginAllowed(info.origin);
 } });
-const narrator = new Narrator(() => broadcast());
-const state = () => ({ ...room.snapshot(),preview,live,narration: narrator.snapshot() });
-function broadcast() {
+const narrator = new Narrator(() => broadcast(),{dir:path.join(dataDir,'classroom-voice')});
+const state = () => ({ ...room.snapshot(),preview,cloud,storage:historyStore.snapshot(),live,narration: narrator.snapshot() });
+async function publish() {
+  await historyStore.flush();
   narrator.observe(room.snapshot());
   const msg = JSON.stringify({ type: 'state', data: state() });
   for (const socket of wss.clients) if (socket.readyState === 1) socket.send(msg);
 }
+function broadcast(){return publish().catch(err=>console.warn('[History]',err.message));}
 room.onChange = broadcast;
-wss.on('connection', socket => socket.send(JSON.stringify({ type: 'state', data: state() })));
+wss.on('connection', async (socket,request) => {
+  socket.controllerRequest=request;
+  socket.alive=true;socket.on('pong',()=>{socket.alive=true;});socket.on('error',()=>{});
+  socket.on('message',data=>{if(String(data)==='ping')socket.send('"pong"');});
+  try{await historyStore.flush();if(socket.readyState===1)socket.send(JSON.stringify({type:'state',data:state()}));}catch{socket.close(1013,'Storage temporarily unavailable');}
+});
 const userFrom = data => {
   const u = data.user || data;
   return { id: u.userId || u.uniqueId || u.displayId || data.userId, name: u.nickname || u.uniqueId || data.nickname || 'Học sinh' };
@@ -109,16 +119,26 @@ async function connect(username) {
     clearTimeout(timeout);
   }
 }
-app.get('/api/classroom/state', (_req, res) => res.json(state()));
-app.use('/classroom-voice', express.static(path.join(__dirname,'data','classroom-voice'),{maxAge:'1d'}));
-app.get('/api/classroom/session', (req, res) => {
-  if (!isLoopback(req) || req.headers['sec-fetch-site'] === 'cross-site') return res.sendStatus(403);
-  res.set('Cache-Control', 'no-store').json({ token });
+app.get('/healthz',(_req,res)=>res.status(historyStore.error?503:200).json({ok:!historyStore.error}));
+app.get('/api/classroom/state', async (_req, res) => {
+  try{await historyStore.flush();res.set('Cache-Control','no-store').json(state());}catch(err){res.status(503).json({error:err.message});}
 });
-app.use('/api/classroom', (req, res, next) => {
-  if (!isLoopback(req)) return res.status(403).json({ error: 'Điều khiển lớp học trên máy tính chạy server.' });
-  if (req.headers['x-classroom-token'] !== token) return res.status(403).json({ error: 'Phiên điều khiển hết hạn. Tải lại trang.' });
-  next();
+app.use('/classroom-voice', express.static(path.join(dataDir,'classroom-voice'),{maxAge:'1d'}));
+app.get('/api/classroom/session',access.session);
+app.post('/api/classroom/login',access.login);
+app.use('/api/classroom',access.requireControl);
+app.post('/api/classroom/logout',access.logout);
+app.get('/api/classroom/history',async (_req,res)=>{try{await historyStore.flush();res.set('Cache-Control','no-store').json(deck.export());}catch(err){res.status(503).json({error:err.message});}});
+app.post('/api/classroom/history/import',async (req,res)=>{
+  try{
+    const history=validateHistory(req.body);
+    const replaceQuestion=history.usedIds.includes(room.question.id);
+    for(const id of history.usedIds)deck.used.add(id);
+    deck.servedCount=Math.max(deck.servedCount,history.servedCount,deck.used.size);
+    historyStore.save(deck.export());
+    if(replaceQuestion)resetRoom();
+    await historyStore.flush();broadcast();res.json({ok:true});
+  }catch(err){res.status(400).json({error:err.message});}
 });
 app.post('/api/classroom/connect', async (req, res) => {
   try { await connect(req.body.username); res.json({ ok: true }); }
@@ -148,13 +168,29 @@ app.post('/api/classroom/settings', (req, res) => {
   } catch (err) { res.status(400).json({ error: err.message }); }
 });
 app.get(['/', '/admin'], (req, res) => {
-  if (!isLoopback(req) && req.query.obs !== '1') return res.redirect('/?obs=1');
+  res.set('Cache-Control','no-store');
+  if(req.query.obs!=='1'&&!access.authorized(req))return res.redirect(access.protectedMode?'/login':'/?obs=1');
   res.sendFile(path.join(__dirname, 'public', 'classroom.html'));
 });
+app.get('/login',(req,res)=>{res.set('Cache-Control','no-store');if(access.authorized(req))return res.redirect('/admin');res.sendFile(path.join(__dirname,'public','classroom-login.html'));});
 app.use(express.static(path.join(__dirname, 'public')));
-setInterval(() => { if(wss.clients.size || live.status==='connected')room.tick(); broadcast(); }, 1000).unref();
+const timer=setInterval(() => {
+  const watching=cloud?[...wss.clients].some(socket=>access.authorized(socket.controllerRequest)):wss.clients.size>0;
+  if(!historyStore.dirty&&(watching||live.status==='connected'))room.tick();broadcast();
+},1000);timer.unref();
+const heartbeat=setInterval(()=>{for(const socket of wss.clients){if(!socket.alive){socket.terminate();continue;}socket.alive=false;socket.ping();}},30000);heartbeat.unref();
+let stopping=false;
+for(const signal of ['SIGTERM','SIGINT'])process.once(signal,async()=>{
+  if(stopping)return;stopping=true;clearInterval(timer);clearInterval(heartbeat);
+  await historyStore.flush().catch(()=>{});narrator.close();
+  if(connection)connection.disconnect().catch(()=>{});
+  for(const client of wss.clients)client.close(1001,'Server restarting');
+  server.close(()=>process.exit(0));setTimeout(()=>process.exit(0),5000).unref();
+});
 server.listen(port, host, () => {
   console.log(`Lớp học làng${preview?' — PHÒNG THỬ':''}: http://localhost:${port}\nMàn hình: http://localhost:${port}/?obs=1`);
   if(!preview && process.env.DISABLE_TIKTOK_AUTOCONNECT!=='1' && livePrefs.enabled && livePrefs.username)connect(livePrefs.username).catch(err=>console.warn('[TikTok reconnect]',err.message));
 });
 server.on('error', err => { console.error(err.code === 'EADDRINUSE' ? `Cổng ${port} đang được dùng. Đổi PORT hoặc dừng server cũ.` : err); process.exit(1); });
+}
+main().catch(err=>{console.error(err.message);process.exitCode=1;});

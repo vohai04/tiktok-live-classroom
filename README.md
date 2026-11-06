@@ -15,7 +15,7 @@ Game lớp học khung dọc 9:16, người xem tham gia bằng bình luận và
 
 ## Chạy trên PC
 
-Cần **Node.js 22.12+**. Giọng đọc hiện dùng **Windows Speech qua PowerShell 7**, cần cài giọng tiếng Việt (máy phát triển dùng Microsoft An). Có thể đặt biến `CLASSROOM_POWERSHELL` đến file `pwsh.exe`.
+Cần **Node.js 22.12+**. Trên Windows, mặc định giọng đọc dùng **Windows Speech qua PowerShell 7**, cần cài giọng tiếng Việt (máy phát triển dùng Microsoft An). Có thể đặt biến `CLASSROOM_POWERSHELL` đến file `pwsh.exe`. Bản Linux/Docker dùng `edge-tts` và eSpeak NG dự phòng.
 
 ```sh
 npm ci
@@ -42,13 +42,17 @@ Mở `start-preview.cmd`, truy cập <http://localhost:3002>. Phòng này chỉ 
 npm test
 ```
 
-28 kiểm tra logic/lịch sử. Đã kiểm tra trình duyệt cục bộ với 30 học sinh, trọn một tiết, các danh hiệu, WAV giọng đọc và bố cục 390 px / 1080 px. Xem [TESTING.md](TESTING.md) về bước kiểm tra đường phát hình và tiếng thực tế.
+36 kiểm tra luật chơi, lịch sử, đăng nhập và lưu Redis. Đã kiểm tra Docker Linux, HTTPS/WSS qua proxy và trình duyệt, âm thanh tự phát và thao tác điều khiển. Các hoạt động lớp học đã được thử với 30 học sinh ở 390 px / 1080 px. Xem [TESTING.md](TESTING.md) về phạm vi kiểm chứng và đường phát thực tế.
 
 ## Kết nối và triển khai
 
 Chạy LIVE trên TikTok rồi nhập username đang LIVE trong bảng điều khiển. Dự án dùng `tiktok-live-connector`, một thư viện không chính thức. Kết nối TikTok trong phiên dài và quà thật vẫn cần kiểm chứng trên tài khoản phát.
 
-**Đây là bản chạy trên PC, chưa phải bản đã tương thích hoàn chỉnh với Render/Vercel.** Đưa lên cloud cần thay giọng đọc Windows, thêm xác thực điều khiển từ xa, chỉnh HTTPS/WebSocket và lưu lịch sử câu hỏi ngoài ổ đĩa tạm. Chưa có cấu hình deploy cloud trong bản này.
+**Đã có cấu hình Render Free bằng Docker.** Đăng nhập điều khiển từ xa bằng `ADMIN_PASSWORD`, nguồn game HTTPS/WSS chỉ xem không cần đăng nhập. Giọng cloud dùng Edge TTS, tự chuyển sang eSpeak NG tiếng Việt khi dịch vụ trực tuyến lỗi. Xem **[DEPLOY.md](DEPLOY.md)** để tạo service, điền biến và đổi runtime Node sang Docker nếu đã tạo service trước đó.
+
+**Biến bắt buộc khi deploy:** `ADMIN_PASSWORD` với mật khẩu riêng ít nhất 12 ký tự. Render cung cấp URL và PORT; Docker đã cấu hình cloud mode và TTS. Không đưa mật khẩu vào Git.
+
+Lịch sử có thể lưu tự động qua **Upstash Redis Free** (thêm REST URL/token), hoặc xuất/nhập bản sao bằng giao diện. Không cấu hình Redis thì lịch sử file trên Render Free sẽ mất khi instance bị thay; cần nhập bản sao để tránh hỏi lại.
 
 Dữ liệu cá nhân, browser profile và âm thanh sinh ra nằm trong `data/`, không đưa lên Git. Điểm và học sinh giữ trong RAM của server, mất khi khởi động lại server.
 
@@ -56,6 +60,7 @@ Dữ liệu cá nhân, browser profile và âm thanh sinh ra nằm trong `data/`
 
 - [CLASSROOM.md](CLASSROOM.md): luật chơi, lệnh bình luận và cấu trúc mã.
 - [TESTING.md](TESTING.md): phạm vi đã test và giới hạn hiện tại.
-- [SECURITY.md](SECURITY.md): phạm vi sử dụng trên PC.
+- [DEPLOY.md](DEPLOY.md): Render Free, biến môi trường và lưu lịch sử.
+- [SECURITY.md](SECURITY.md): đăng nhập, phiên và phạm vi dữ liệu công khai.
 
 Phần lớp học phát triển từ một dự án game chùa; mã và tài nguyên cũ vẫn được giữ để tham khảo. Tài liệu gốc ở [docs/legacy-temple-readme.md](docs/legacy-temple-readme.md), ghi nhận nguồn 3D ở [public/assets/models/README.md](public/assets/models/README.md). Công khai repository không thay đổi quyền của tài nguyên bên thứ ba.

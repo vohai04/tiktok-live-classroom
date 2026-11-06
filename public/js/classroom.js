@@ -52,9 +52,15 @@
     text('toast', message); $('toast').classList.add('visible');
     clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('visible'), 3800);
   }
-  async function request(route, data) {
-    if (!sessionToken) { const session = await fetch('/api/classroom/session').then(r => r.json()); sessionToken = session.token; }
-    const res = await fetch(`/api/classroom/${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Classroom-Token': sessionToken }, body: JSON.stringify(data || {}) });
+  async function loadSession(){
+    const res=await fetch('/api/classroom/session'),session=await res.json();
+    if(!res.ok){if(res.status===401&&!obs)location.replace('/login');throw new Error(session.error||'Không mở được phiên điều khiển.');}
+    sessionToken=session.token;$('logoutBtn').hidden=!session.loginRequired;
+  }
+  async function request(route, data, method='POST') {
+    if (!sessionToken) await loadSession();
+    const res = await fetch(`/api/classroom/${route}`, { method, headers: { 'Content-Type': 'application/json', 'X-Classroom-Token': sessionToken }, ...(method==='GET'?{}:{body: JSON.stringify(data || {})}) });
+    if(res.status===401){sessionToken='';if(!obs)location.replace('/login');}
     const result = await res.json(); if (!res.ok) throw new Error(result.error || 'Không gửi được lệnh.');
     return result;
   }
@@ -158,6 +164,7 @@
     text('pauseBtn', s.paused?'Tiếp tục học':'Tạm dừng');
     document.querySelectorAll('[data-action]').forEach(el => el.disabled = (s.paused && el.dataset.action !== 'pause') || (q.exhausted&&['next','reveal'].includes(el.dataset.action)));
     text('bankStatus',s.questionBank?`Kho câu hỏi: ${s.questionBank.used}/${s.questionBank.total} đã dùng · còn ${s.questionBank.remaining} câu mới. Lịch sử được giữ khi khởi động lại hoặc xóa lớp.`:'');
+    text('storageStatus',s.storage?.durable?'Lịch sử đang lưu trên Redis; được giữ khi deploy lại.':s.cloud?'Lịch sử đang lưu tạm trên server. Xuất bản sao trước khi deploy lại, hoặc cấu hình Redis để lưu tự động.':'Lịch sử đang lưu trên PC. Có thể xuất bản sao để chuyển sang server khác.');
     text('monitorGiftLabel', `Quà ${s.settings.monitorCoins} xu · 2 phút`);
     const signature = JSON.stringify(s.settings);
     if (signature !== settingsSignature) { for (const [key,value] of Object.entries(s.settings)) { if($(key))$(key).value = value; } settingsSignature = signature; }
@@ -170,9 +177,10 @@
   }
   function connectSocket() {
     const ws = new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/classroom/ws`);
-    ws.onopen = () => { $('socketDot').classList.add('connected'); text('socketLabel','Màn hình đã kết nối'); };
+    let heartbeat;
+    ws.onopen = () => { $('socketDot').classList.add('connected'); text('socketLabel','Màn hình đã kết nối');heartbeat=setInterval(()=>{if(ws.readyState===WebSocket.OPEN)ws.send('ping');},25000); };
     ws.onmessage = event => { try { const msg = JSON.parse(event.data); if(msg.type==='state') render(msg.data); } catch(err) { console.error(err); } };
-    ws.onclose = () => { $('socketDot').classList.remove('connected'); text('socketLabel','Mất kết nối · đang thử lại…'); setTimeout(connectSocket,2000); };
+    ws.onclose = () => { clearInterval(heartbeat);$('socketDot').classList.remove('connected'); text('socketLabel','Mất kết nối · đang thử lại…'); setTimeout(connectSocket,2000); };
     ws.onerror = () => ws.close();
   }
   const handle = fn => async event => { event.preventDefault(); try { await fn(event); } catch(err) { toast(err.message); } };
@@ -186,6 +194,18 @@
   $('commentForm').addEventListener('submit',handle(async()=>{ await demo({kind:'comment',text:$('comment').value}); $('comment').value=''; }));
   $('connectForm').addEventListener('submit',handle(async()=>{ $('connectBtn').disabled=true; try { await request('connect',{username:$('username').value}); toast('Đã kết nối TikTok LIVE.'); } finally { $('connectBtn').disabled=false; } }));
   $('disconnectBtn').addEventListener('click',handle(()=>request('disconnect')));
+  $('logoutBtn').addEventListener('click',handle(async()=>{await request('logout');location.replace('/login');}));
+  $('exportHistoryBtn').addEventListener('click',handle(async()=>{
+    const history=await request('history',undefined,'GET');
+    const url=URL.createObjectURL(new Blob([JSON.stringify(history,null,2)],{type:'application/json'}));
+    const link=document.createElement('a');link.href=url;link.download='classroom-question-history.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }));
+  $('importHistoryBtn').addEventListener('click',()=>$('historyFile').click());
+  $('historyFile').addEventListener('change',handle(async()=>{
+    const file=$('historyFile').files[0];if(!file)return;
+    if(file.size>32000)throw new Error('File lịch sử quá lớn.');
+    await request('history/import',JSON.parse(await file.text()));$('historyFile').value='';toast('Đã gộp lịch sử câu hỏi, không xóa câu đã dùng.');
+  }));
   $('settingsForm').addEventListener('submit',handle(async()=>{ await request('settings',Object.fromEntries(['questionSeconds','monitorCoins'].map(k=>[k,Number($(k).value)]))); toast('Đã lưu thiết lập. Thời gian mới áp dụng từ câu tiếp theo.'); }));
   $('seedBtn').addEventListener('click',handle(async()=>{
     $('seedBtn').disabled=true;
@@ -202,5 +222,6 @@
   text('obsUrl',`${location.origin}/?obs=1`);
   // OBS can enable audio with one click through its Interact window.
   if(obs) document.addEventListener('pointerdown',unlockVoice,{once:true});
+  else loadSession().catch(err=>toast(err.message));
   connectSocket();
 })();

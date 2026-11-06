@@ -31,7 +31,12 @@ Sau kiểm tra cục bộ, dùng chế độ thử nếu tài khoản có. Kiể
 
 ## Kết quả hiện tại
 
-- 28 kiểm tra logic/lịch sử: qua, gồm tiết học, chuỗi đúng, tổ trưởng, thời gian trả lời khi tạm dừng, rung chuông, giới hạn cổ vũ/đọc thành tích và phân biệt đáp án tiếng Việt chỉ khác dấu.
+- 36 kiểm tra luật chơi, lịch sử, đăng nhập/cookie/CSRF/Origin và Redis (mock REST): qua trên Windows và Docker Linux.
+- `npm run test:cloud` trong Docker Linux: qua; kiểm tra server thật, đăng nhập/đăng xuất, chặn API chưa đăng nhập, WebSocket Origin, xuất/nhập lịch sử và file WAV tiếng Việt eSpeak NG thật. Bài này ép offline để kiểm tra fallback ổn định.
+- Bài chạy thử cloud cũng qua khi giới hạn container ở 512 MB RAM / 0.5 CPU. Đây không phải benchmark tải cao hoặc xác nhận độ ổn định phiên dài.
+- Trình duyệt qua HTTPS reverse proxy cục bộ đến container: đăng nhập, cookie Secure, điều khiển, nguồn chỉ xem không có cookie, WSS, tự phát âm thanh, tải/nhập lịch sử và đăng xuất: qua, không ghi nhận lỗi JavaScript.
+- Đã liệt kê được hai giọng vi-VN của Edge từ container; trong lần thử phát âm thanh qua trình duyệt, worker dùng eSpeak NG dự phòng. Chưa xác nhận giọng Edge tự nhiên hoạt động trên mạng Render.
+- Chưa có tài khoản/URL Render của người dùng để xác nhận service đã deploy. Kiểm tra Docker/HTTPS cục bộ không thay cho kiểm tra trên Render và TikTok.
 - Playwright qua giao diện thật của phòng thử: 30 học sinh, quà lớp trưởng, vỗ tay, tổ trưởng, 10 câu, bảng tốc độ, rung chuông, tổng kết, sang tiết mới giữ thành tích, hỏi điểm cá nhân. Không ghi nhận lỗi JavaScript.
 - Kiểm tra vùng bố cục ở 390 × 844 và 1080 × 1920: bảng tổng kết và thanh tiến trình không tràn, các vùng chính không chồng nhau. Đã xem ảnh màn hình lúc rung chuông và tổng kết.
 - Đã kiểm tra sự kiện giọng đọc tổng kết tiết và file WAV được trả về hợp lệ.

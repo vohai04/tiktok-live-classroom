@@ -12,7 +12,8 @@ npm start
 - Điều khiển + xem thử: http://localhost:3000
 - OBS Browser Source: http://localhost:3000/?obs=1 — kích thước 1080 × 1920.
 - Nếu cổng đã được dùng: `$env:PORT=3001; npm start` (đổi URL theo cổng).
-- Không cần Python, ZeroTTS hay Bun cho bản lớp học. Giọng tiếng Việt dùng Windows Speech (Microsoft An trên máy hiện tại), chạy qua PowerShell 7; không cần mạng hay API key. Có thể đặt đường dẫn PowerShell 7 bằng `CLASSROOM_POWERSHELL`. Màn hình LIVE tự phát giọng, không có nút bật giọng. Nút nghe thử ở bảng điều khiển chỉ dùng để kiểm tra, thường để tắt nhằm tránh phát trùng hai cửa sổ.
+- Bản PC Windows dùng Windows Speech qua PowerShell 7 (Microsoft An trên máy hiện tại), không cần Python/Bun hay API key. Bản Docker Linux đã cài Python, Edge TTS và eSpeak NG tiếng Việt dự phòng. Có thể đặt đường dẫn PowerShell 7 bằng `CLASSROOM_POWERSHELL` khi chạy Windows. Màn hình LIVE tự phát giọng theo chính sách autoplay của ứng dụng phát; nút nghe thử trên bảng điều khiển thường để tắt nhằm tránh trùng tiếng.
+- Deploy miễn phí trên Render: xem [DEPLOY.md](DEPLOY.md). Chọn Docker, đặt ADMIN_PASSWORD riêng từ 12 ký tự, rồi đăng nhập tại `/admin`. Nguồn game là `/?obs=1` trên cùng tên miền HTTPS.
 - `open-game-window.cmd` mở cửa sổ xem thử. Để phát rõ nét, ưu tiên OBS Browser Source render trực tiếp ở 1080 × 1920; không cắt rồi phóng cửa sổ xem thử nhỏ. Xem [TESTING.md](TESTING.md) về luồng phát và bước ghi thử trước LIVE.
 - iPhone: mở trang game bằng Safari rồi Thêm vào Màn hình chính. Mở từ biểu tượng đó để dùng chế độ standalone, không có thanh địa chỉ. Không thể giấu thanh địa chỉ chỉ bằng JavaScript trong một tab Safari thông thường.
 - Giọng đọc tự đọc câu hỏi và lựa chọn, chào người mới (có giới hạn tần suất), gọi lên bảng, công bố đáp án/người đúng, cảm ơn quà. Hàng đợi tối đa 4 đoạn ở trình phát; bỏ đoạn của câu trước khi sang câu mới. Không đọc nguyên văn mọi bình luận.
@@ -79,7 +80,7 @@ Bản chùa cũ còn trong `server.js` và các tài nguyên cũ để tham kh�
 
 - Kho mới gồm 120 câu (40 Toán, 40 Tiếng Việt, 40 kiến thức tổng hợp), mỗi câu có đáp án và giải thích. Những câu đố mẹo mơ hồ của bản thử cũ đã được thay.
 - Chọn ngẫu nhiên trong các câu chưa hỏi; vị trí đáp án A/B/C/D cũng được xáo trộn, đáp án đúng đi cùng nội dung.
-- Lịch sử ghi vào `data/classroom-question-history.json` trước khi câu xuất hiện. Tải lại trang, xóa lớp, kết nối lại LIVE hoặc khởi động server không xóa lịch sử này.
+- Trên PC, lịch sử ghi vào `data/classroom-question-history.json` trước khi câu xuất hiện; tải lại trang, xóa lớp, kết nối lại LIVE hoặc khởi động server không xóa file này. Trên Render Free, cần cấu hình Redis hoặc nhập bản sao để giữ lịch sử khi ổ đĩa tạm bị thay. Bảng điều khiển có xuất/nhập bản sao và hiển thị nơi đang lưu.
 - Hết câu chưa dùng trong một môn thì lấy câu mới từ nhóm khác. Hết toàn bộ kho thì hiển thị “Đã hết câu hỏi mới” và dừng, không tự quay vòng.
 - Bổ sung câu mới trong `lib/classroom-questions.cjs` rồi khởi động lại server. Mã câu dựa trên nội dung đề; sửa thứ tự lựa chọn không làm câu cũ thành câu mới.
 - Không tự xóa lịch sử khi file lỗi; server báo lỗi để tránh lặp câu âm thầm. Đừng xóa file lịch sử trừ khi bạn chủ động muốn cho phép hỏi lại từ đầu.
