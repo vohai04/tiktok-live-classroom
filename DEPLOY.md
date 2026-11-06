@@ -50,7 +50,7 @@ Nếu chưa dùng Redis, bảng điều khiển có **Xuất bản sao / Nhập 
 
 - Điều khiển: mở `https://TEN-DICH-VU.onrender.com/admin`, đăng nhập bằng ADMIN_PASSWORD.
 - Nguồn OBS/LIVE Studio: `https://TEN-DICH-VU.onrender.com/?obs=1`, kích thước **1080 × 1920**. Nguồn chỉ xem này không cần mật khẩu.
-- Khi chưa kết nối TikTok, giữ bảng điều khiển đã đăng nhập mở để tiết học tự chạy. Người lạ chỉ xem nguồn sẽ không tự làm server chạy hết kho câu hỏi. Khi TikTok đã kết nối, tiết học chạy ngay cả khi đóng bảng điều khiển.
+- Khi chưa kết nối TikTok, giữ bảng điều khiển đã đăng nhập mở để tiết học tự chạy. Nếu chỉ có người xem nguồn, đồng hồ hiện **Chờ mở lớp** và giữ nguyên thời gian; mở lại điều khiển sẽ tiếp tục đếm, không bị kẹt 0 giây hoặc tự tiêu hết kho câu hỏi. Khi TikTok đã kết nối, tiết học chạy ngay cả khi đóng bảng điều khiển.
 - Đăng nhập có hiệu lực 12 giờ, cookie HttpOnly/Secure/SameSite=Strict. Đổi mật khẩu/restart sẽ yêu cầu đăng nhập lại.
 - Thử điểm danh, quà giả lập và âm thanh trước. Sau đó mới kết nối tài khoản TikTok đang LIVE trong bảng điều khiển.
 - Trên PC Windows có giọng **Microsoft An**, màn hình game cloud tự ưu tiên giọng An cục bộ như bản PC trước đây. Nội dung lời đọc được gửi ngay qua WebSocket, không chờ file giọng cloud; không phát chồng file eSpeak. Trình duyệt phải cung cấp giọng An qua Web Speech API. Đã kiểm tra bằng Chromium trên Windows; cần kiểm tra riêng trong nguồn Liên kết của LIVE Studio/OBS vì mỗi ứng dụng có thể hỗ trợ giọng khác nhau.

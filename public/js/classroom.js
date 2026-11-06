@@ -114,17 +114,21 @@
   }
   function render(s) {
     latest = s; const q = s.question;
-    const now = s.paused ? s.pausedAt : s.now;
+    const now = s.clockAt??(s.paused ? s.pausedAt : s.now);
     const seconds = q.exhausted?0:Math.max(0, Math.ceil((q.endAt-now)/1000));
     const lesson=s.lesson||{number:1,question:1,ended:false};
     const captains=s.captains||[null,null,null];
-    text('subject', subjects[q.subject]); text('round', `Tiết ${lesson.number} · ${lesson.question}/10`); text('timer', q.exhausted?'—':`${seconds}s`);
-    $('timer').classList.toggle('urgent', seconds <= 5 && !q.revealed);
+    const timerLabel=q.exhausted?'Hết kho':s.waiting?'Chờ mở lớp':s.paused?'Tạm dừng':q.revealed?`Đổi câu ${seconds}s`:`Còn ${seconds}s`;
+    text('subject', subjects[q.subject]); text('round', `Tiết ${lesson.number} · ${lesson.question}/10`); text('timer',timerLabel);
+    $('timer').setAttribute('aria-label',q.revealed?`Chuyển câu sau ${seconds} giây`:s.waiting?'Chờ mở lớp':`Còn ${seconds} giây trả lời`);
+    $('timer').classList.toggle('urgent', seconds <= 5 && !q.revealed&&!s.waiting&&!s.paused);
+    $('timer').classList.toggle('waiting',!!s.waiting||!!s.paused||!!q.exhausted);
+    $('timer').classList.toggle('revealed',!!q.revealed);
     $('timerBar').style.width = `${Math.min(100, seconds/(q.revealed ? 8 : s.settings.questionSeconds)*100)}%`;
     text('questionText', q.text);
     html('options', q.options.map((option,i) => `<div class="option ${q.revealed ? (i===q.correct ? 'correct':'wrong') : ''}"><b>${'ABCD'[i]}</b><span>${escape(option)}</span></div>`).join(''));
     text('answerCount', `${q.answerCount} bạn đã trả lời`);
-    text('boardHint', q.exhausted?'Chờ bổ sung câu mới':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
+    text('boardHint', q.exhausted?'Chờ bổ sung câu mới':s.waiting?'Chờ mở điều khiển hoặc kết nối LIVE':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
     const n = s.students.length;
     const teamMembers=[0,1,2].map(team=>s.students.filter(p=>p.team===team));
     const pages = Math.max(1,...teamMembers.map(m=>Math.ceil(m.length/10))), page = pages > 1 ? Math.floor(s.now/15000)%pages : 0;

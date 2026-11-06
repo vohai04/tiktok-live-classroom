@@ -109,6 +109,28 @@ test('pause freezes round deadline; resumes with the remaining time', () => {
   room.control('pause'); advance(29000); assert.equal(room.question.revealed, false);
   advance(1000); assert.equal(room.question.revealed, true);
 });
+test('waiting for an operator freezes the question clock instead of leaving a stale zero',()=>{
+  const {room,advance}=fixture();room.setRunning(false);advance(300000);
+  const waiting=room.snapshot();assert.equal(waiting.waiting,true);
+  assert.equal(waiting.question.endAt-waiting.clockAt,35000);
+  assert.equal(waiting.question.revealed,false);assert.equal(waiting.questionBank.used,1);
+  room.setRunning(true);advance(34999);assert.equal(room.question.revealed,false);
+  advance(1);assert.equal(room.question.revealed,true);advance(8000);assert.equal(room.round,2);
+});
+test('idle and manual pause overlap only freezes time once and keeps answer speed accurate',()=>{
+  const {room,advance}=fixture();advance(5000);room.setRunning(false);advance(60000);
+  room.control('pause');advance(60000);room.setRunning(true);advance(60000);
+  room.control('pause');assert.equal(room.question.endAt-room.now(),30000);
+  advance(1000);room.comment(user('An'),'B');room.control('reveal');
+  assert.equal(room.winners[0].elapsed,6000);assert.equal(room.students.get('An').score,10);
+});
+test('waiting during a lesson summary preserves its remaining break time',()=>{
+  const {room,advance}=lessonFixture();for(let i=0;i<10;i++)room.control('next');
+  assert.equal(room.lesson.ended,true);room.setRunning(false);advance(60000);
+  assert.equal(room.lesson.endsAt-room.snapshot().clockAt,15000);
+  room.setRunning(true);advance(14999);assert.equal(room.lesson.number,1);
+  advance(1);assert.equal(room.lesson.number,2);
+});
 test('gift combo 1→2→3→final only grants three units, duplicate final is deduped', () => {
   const { room } = fixture(); const tracker = new Map();
   for (const [count,final] of [[1,false],[2,false],[3,false],[3,true],[3,true]]) {

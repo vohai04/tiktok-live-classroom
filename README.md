@@ -42,7 +42,7 @@ Mở `start-preview.cmd`, truy cập <http://localhost:3002>. Phòng này chỉ 
 npm test
 ```
 
-39 kiểm tra luật chơi, lịch sử, đăng nhập, lưu Redis và lời đọc. Đã kiểm tra Docker Linux, HTTPS/WSS qua proxy, giọng Microsoft An cục bộ tự phát trên Chromium Windows, chống đọc trùng, tạm dừng/tiếp tục và chuyển câu. Các hoạt động lớp học đã được thử với 30 học sinh ở 390 px / 1080 px. Xem [TESTING.md](TESTING.md) về phạm vi kiểm chứng và đường phát thực tế.
+42 kiểm tra luật chơi, lịch sử, đăng nhập, lưu Redis, lời đọc và đồng hồ chờ/tiếp tục. Đã kiểm tra Docker Linux, HTTPS/WSS qua proxy, giọng Microsoft An cục bộ tự phát trên Chromium Windows, chống đọc trùng, tạm dừng/tiếp tục và chuyển câu. Các hoạt động lớp học đã được thử với 30 học sinh ở 390 px / 1080 px. Xem [TESTING.md](TESTING.md) về phạm vi kiểm chứng và đường phát thực tế.
 
 ## Kết nối và triển khai
 

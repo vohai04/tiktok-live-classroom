@@ -31,7 +31,8 @@ Sau kiểm tra cục bộ, dùng chế độ thử nếu tài khoản có. Kiể
 
 ## Kết quả hiện tại
 
-- 39 kiểm tra luật chơi, lịch sử, đăng nhập/cookie/CSRF/Origin, Redis (mock REST) và lời đọc: qua trên Windows. Bộ 36 kiểm tra trước thay đổi ưu tiên giọng An đã qua trên Docker Linux.
+- 42 kiểm tra luật chơi, lịch sử, đăng nhập/cookie/CSRF/Origin, Redis (mock REST), lời đọc và đồng hồ chờ: qua trên Windows. Bộ 36 kiểm tra trước thay đổi ưu tiên giọng An đã qua trên Docker Linux.
+- Bài chạy thử cloud trong Docker đã kiểm tra thêm: nguồn ẩn danh giữ trạng thái chờ, mở WebSocket điều khiển có đăng nhập bắt đầu đếm, đóng điều khiển lại giữ nguyên đồng hồ. Trên trình duyệt, các nhãn chờ / còn 35 → 34 giây / khẩn cấp / đổi câu / tạm dừng đều qua; bố cục 120 câu và khung 390 px không phát hiện tràn sau khi tăng cỡ đồng hồ.
 - Trình duyệt Chromium trên Windows: giọng Microsoft An thật khởi phát tự động khi nhận lời đọc của bản cloud, ngay cả khi server không tạo được audio; không tải/phát chồng file cloud, không đọc lại khi cùng sự kiện được gửi nhiều lần, tạm dừng/tiếp tục và hủy câu cũ khi sang câu mới: qua. Chưa xác nhận Web Speech API bên trong nguồn browser của LIVE Studio/OBS.
 - `npm run test:cloud` trong Docker Linux: qua; kiểm tra server thật, đăng nhập/đăng xuất, chặn API chưa đăng nhập, WebSocket Origin, xuất/nhập lịch sử và file WAV tiếng Việt eSpeak NG thật. Bài này ép offline để kiểm tra fallback ổn định.
 - Bài chạy thử cloud cũng qua khi giới hạn container ở 512 MB RAM / 0.5 CPU. Đây không phải benchmark tải cao hoặc xác nhận độ ổn định phiên dài.

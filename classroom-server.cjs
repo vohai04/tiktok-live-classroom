@@ -32,6 +32,7 @@ const historyFile=process.env.CLASSROOM_HISTORY_FILE || path.join(dataDir,'class
 const historyStore=new HistoryStore({file:historyFile,url:process.env.UPSTASH_REDIS_REST_URL||'',token:process.env.UPSTASH_REDIS_REST_TOKEN||'',key:process.env.CLASSROOM_HISTORY_KEY||`classroom:${preview?'preview':'live'}:question-history`});
 const deck=new QuestionDeck({questions,history:await historyStore.load(),persist:history=>historyStore.save(history)});
 let room = new Classroom({ saved,deck });
+room.setRunning(!cloud);
 await historyStore.flush();
 let live = { status: 'demo', username: '', error: '', viewers: 0 };
 let connection = null;
@@ -59,6 +60,7 @@ function broadcast(){return publish().catch(err=>console.warn('[History]',err.me
 room.onChange = broadcast;
 wss.on('connection', async (socket,request) => {
   socket.controllerRequest=request;
+  if(access.authorized(request)||live.status==='connected')room.setRunning(true);
   socket.alive=true;socket.on('pong',()=>{socket.alive=true;});socket.on('error',()=>{});
   socket.on('message',data=>{if(String(data)==='ping')socket.send('"pong"');});
   try{await historyStore.flush();if(socket.readyState===1)socket.send(JSON.stringify({type:'state',data:state()}));}catch{socket.close(1013,'Storage temporarily unavailable');}
@@ -68,7 +70,7 @@ const userFrom = data => {
   return { id: u.userId || u.uniqueId || u.displayId || data.userId, name: u.nickname || u.uniqueId || data.nickname || 'Học sinh' };
 };
 const safely = fn => (...args) => { try { fn(...args); broadcast(); } catch (err) { console.warn('[Event]', err.message); } };
-function resetRoom() { narrator.reset(); room = new Classroom({ saved: { settings: room.settings }, deck,onChange: broadcast }); combo.clear(); }
+function resetRoom() { const running=room.running;narrator.reset(); room = new Classroom({ saved: { settings: room.settings }, deck,onChange: broadcast });room.setRunning(running); combo.clear(); }
 async function disconnect() {
   generation++; const old = connection; connection = null;
   live = { status: 'demo', username: '', error: '', viewers: 0 }; combo.clear();
@@ -176,6 +178,7 @@ app.get('/login',(req,res)=>{res.set('Cache-Control','no-store');if(access.autho
 app.use(express.static(path.join(__dirname, 'public')));
 const timer=setInterval(() => {
   const watching=cloud?[...wss.clients].some(socket=>access.authorized(socket.controllerRequest)):wss.clients.size>0;
+  room.setRunning(!!(watching||live.status==='connected'));
   if(!historyStore.dirty&&(watching||live.status==='connected'))room.tick();broadcast();
 },1000);timer.unref();
 const heartbeat=setInterval(()=>{for(const socket of wss.clients){if(!socket.alive){socket.terminate();continue;}socket.alive=false;socket.ping();}},30000);heartbeat.unref();
