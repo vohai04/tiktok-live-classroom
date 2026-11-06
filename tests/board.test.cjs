@@ -1,7 +1,7 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {Classroom}=require('../lib/classroom-engine.cjs');
-const {QuestionDeck}=require('../lib/classroom-question-deck.cjs');
+const {QuestionDeck,questionId}=require('../lib/classroom-question-deck.cjs');
 const boardQuestions=require('../lib/classroom-board-questions.cjs');
 const classQuestions=require('../lib/classroom-questions.cjs');
 const user=name=>({id:name,name});
@@ -83,4 +83,38 @@ test('failed persistence cannot expose a board task or consume the waiting playe
   f.deck.persist=()=>{throw new Error('storage unavailable');};
   assert.throws(()=>r.control('call'),/storage unavailable/);assert.equal(r.stage,null);assert.equal(r.queue[0].id,'An');
   assert.equal(f.deck.stats('stage').used,0);assert.equal(r.students.get('An').boardAttempts,0);
+});
+
+test('a rose automatically registers one priority turn; no extra comment and no unearned star',()=>{
+  const f=fixture(),r=f.room;
+  assert.match(r.gift(user('An'),{coins:1}),/tự xếp hàng/);
+  assert.equal(r.queue.length,1);assert.equal(r.queue[0].id,'An');assert.equal(r.queue[0].priority,true);
+  r.gift(user('An'),{coins:1});assert.equal(r.queue.length,1);assert.equal(r.students.get('An').boardCorrect,0);
+  f.advance(35000);assert.equal(r.stage,null);f.advance(8000);assert.equal(r.stage.id,'An');
+  r.gift(user('An'),{coins:1});assert.equal(r.queue.length,0);
+  r.comment(user('An'),'A');assert.equal(r.students.get('An').boardCorrect,1);
+});
+
+test('gifts received while idle or paused reserve a turn without starting the countdown',()=>{
+  const f=fixture(),r=f.room;r.setRunning(false);f.advance(60000);
+  r.gift(user('An'),{coins:1});assert.equal(r.queue.length,1);assert.equal(r.stage,null);
+  f.advance(60000);r.setRunning(true);assert.equal(r.queue[0].at,r.now());
+  r.control('pause');r.gift(user('Bình'),{coins:1});assert.equal(r.queue.length,2);assert.equal(r.stage,null);
+  r.control('pause');r.control('reveal');r.control('call');assert.equal(r.stage.id,'An');
+});
+
+test('exhausted class history still permits fresh private tasks and never replays a class question',()=>{
+  let time=1000000;
+  const usedIds=classQuestions.map(questionId),deck=new QuestionDeck({questions:[...classQuestions,...boardQuestions],history:{version:1,usedIds,servedCount:usedIds.length},shuffleOptions:false});
+  const r=new Classroom({deck,now:()=>time});assert.equal(r.question.exhausted,true);
+  r.gift(user('An'),{coins:1});r.tick();assert.equal(r.stage.id,'An');assert.equal(r.stage.until-time,25000);
+  r.comment(user('An'),'A');time+=10000;r.tick();assert.equal(r.stage,null);assert.equal(r.students.get('An').boardCorrect,1);
+  assert.equal(r.question.exhausted,true);assert.equal(deck.stats('class').used,120);assert.equal(deck.stats('stage').used,1);
+  r.comment(user('Bình'),'lên bảng');r.control('call');assert.equal(r.stage.id,'Bình');
+  assert.ok(usedIds.every(id=>deck.used.has(id)));assert.equal(deck.stats('stage').used,2);
+});
+
+test('gift at an exhausted private bank never falsely promises an upcoming private turn',()=>{
+  const f=fixture([]),r=f.room;
+  assert.match(r.gift(user('An'),{coins:1}),/hết bài trả riêng/);assert.equal(r.queue.length,0);assert.equal(r.stage,null);
 });

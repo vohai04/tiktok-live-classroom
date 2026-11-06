@@ -141,10 +141,10 @@
     $('timer').classList.toggle('waiting',!!s.waiting||!!s.paused||!!q.exhausted);
     $('timer').classList.toggle('revealed',!!q.revealed);
     $('timerBar').style.width = `${Math.min(100, seconds/(board?(q.revealed?10:25):(q.revealed ? 8 : s.settings.questionSeconds))*100)}%`;
-    text('questionText', q.text);
+    text('questionText', q.exhausted&&s.boardBank?.remaining?'Câu chung đã hết. Trả bài riêng vẫn mở!':q.text);
     html('options', q.options.map((option,i) => `<div class="option ${q.revealed ? (i===q.correct ? 'correct':'wrong') : ''}"><b>${'ABCD'[i]}</b><span>${escape(option)}</span></div>`).join(''));
     text('answerCount', board?(board.result?'Đã kết thúc lượt trả bài':'Bạn được gọi trả lời'):`${q.answerCount} bạn đã trả lời`);
-    text('boardHint',board?(board.result?q.explain:'Cả lớp: “vỗ tay”'):q.exhausted?'Chờ bổ sung câu mới':s.waiting?'Chờ mở điều khiển hoặc kết nối LIVE':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
+    text('boardHint',board?(board.result?q.explain:'Cả lớp: “vỗ tay”'):q.exhausted?(s.boardBank?.remaining?'Gõ “lên bảng” hoặc tặng hoa':'Chờ bổ sung câu mới'):s.waiting?'Chờ mở điều khiển hoặc kết nối LIVE':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
     fitQuestionText();
     const teacher=s.teacher;
     $('teacherHonor').hidden=!teacher;
@@ -161,7 +161,7 @@
       const captain=p&&captains[team]?.id===p.id;
       return `<div class="desk team-${team} ${p?'':'empty'} ${isMonitor?'is-monitor':''} ${isTeacher?'is-teacher':''} ${p&&p.boardCorrect>=3?'board-scholar':''} ${p&&winners.has(p.id)?'answered':''}" data-team="${team+1}">${p&&!isMonitor&&!isBoard&&!isTeacher ? avatar(p,'',true) : ''}<div class="desktop"></div><span class="desk-name" ${p?`title="Tổ ${team+1}: ${escape(p.name)}${isTeacher?' · Thầy danh dự':captain?' · Tổ trưởng':''}${p.boardCorrect>=3?' · Học sinh bản lĩnh':''}"`:''}>${p?`<i class="team-number">${team+1}</i>${isTeacher?'🎓 ':isMonitor?'👑 ':captain?'🏅 ':''}${escape(p.name)}`:'Chỗ trống'}${p && p.credits>0?' 🌹':''}</span>${isBoard?'<span class="seat-moved">Đang trả bài ↗</span>':isTeacher?'<span class="seat-moved">Thầy danh dự ↗</span>':isMonitor?'<span class="seat-moved">Bàn danh dự ↗</span>':''}${p&&!isBoard&&p.applauseUntil>s.now?'<span class="pupil-applause">👏</span>':p&&p.streak>=3?`<span class="pupil-streak">🔥${p.streak}</span>`:''}${p&&!isBoard&&!isMonitor&&!isTeacher&&queueIds.has(p.id)?'<span class="hand">✋</span>':''}${p&&!isBoard&&!isMonitor&&!isTeacher&&winners.has(p.id)?'<span class="desk-answer">✓</span>':''}${p&&p.boardCorrect>0?`<span class="board-stars">★${p.boardCorrect}</span>`:''}</div>`;
     }).join(''));
-    text('monitor', s.monitor ? `⭐ Lớp trưởng: ${s.monitor.name} · ${Math.max(0,Math.ceil((s.monitor.until-s.now)/1000))}s` : `⭐ Tặng quà từ ${s.settings.monitorCoins} xu → lớp trưởng 2 phút`);
+    text('monitor', s.monitor ? `👑 Lớp trưởng: ${s.monitor.name} · ${Math.max(0,Math.ceil((s.monitor.until-s.now)/1000))}s` : `👑 Tặng quà từ ${s.settings.monitorCoins} xu → lớp trưởng 2 phút`);
     const stagePlayer = s.students.find(p => p.id === s.stage?.id);
     text('atBoard', stagePlayer ? `Trả bài: ${stagePlayer.name}${s.stage.priority?' 🌹':''}` : 'LÊN BẢNG · Trả bài đúng nhận 1 sao');
     const monitorPlayer=s.students.find(p=>p.id===s.monitor?.id);
@@ -207,8 +207,8 @@
       const index = priority>=0 && (run<2 || normal<0) ? priority : normal;
       const p = pending.splice(index,1)[0]; ordered.push(p); run = p.priority?run+1:0;
     }
-    html('queueList', ordered.length ? ordered.slice(0,4).map((p,i)=>`<span class="queue-chip ${p.priority?'priority':''}">${i+1}. ${p.priority?'🌹 ':''}${escape(p.name)}</span>`).join('') : '<span class="empty-note">Bình luận “lên bảng” để đăng ký lượt.</span>');
-    text('giftRules', `🌹 Quà ưu tiên · Top xu làm thầy · ${s.settings.monitorCoins} xu lớp trưởng`);
+    html('queueList', ordered.length ? ordered.slice(0,4).map((p,i)=>`<span class="queue-chip ${p.priority?'priority':''}">${i+1}. ${p.priority?'🌹 ':''}${escape(p.name)}</span>`).join('') : '<span class="empty-note">Gõ “lên bảng” hoặc tặng hoa để đăng ký.</span>');
+    text('giftRules', `🌹 Tự xếp lượt · Top xu: thầy · ${s.settings.monitorCoins} xu lớp trưởng`);
     $('pauseShade').hidden = !s.paused;
     const connected = s.live.status === 'connected';
     text('modeTag', s.preview?'Phòng thử':connected ? `LIVE @${s.live.username}` : s.live.status==='disconnected' ? 'Mất kết nối' : s.live.status==='connecting' ? 'Đang kết nối…' : 'Bản thử'); $('modeTag').classList.toggle('live', connected);
@@ -225,11 +225,13 @@
     html('giftLeaders',s.giftLeaders?.length?s.giftLeaders.map((p,i)=>`<li><span>${i===0?'♛':i+1}</span><span>${escape(p.name)}${teacher?.id===p.id?'<small>Thầy danh dự đang đứng lớp</small>':''}</span><b>${Number(p.coins).toLocaleString('vi-VN')} xu</b></li>`).join(''):'<li class="empty-leader">Chưa có quà tặng. Vị trí thầy giáo chưa ghi tên.</li>');
     const boardLeaders=s.students.filter(p=>p.boardAttempts>0).sort((a,b)=>b.boardCorrect-a.boardCorrect).slice(0,6);
     html('boardRecords',boardLeaders.length?boardLeaders.map(p=>`<li><span>★</span><span>${escape(p.name)}<small>${p.boardCorrect>=3?'🏅 Học sinh bản lĩnh':`${3-p.boardCorrect} sao nữa để nhận danh hiệu`} · ${p.boardAttempts} lượt trả bài</small></span><b>${p.boardCorrect} sao</b></li>`).join(''):'<li class="empty-leader">Bình luận “lên bảng” để thử bài riêng trong 25 giây.</li>');
-    text('callBtn',board?'Đổi bạn (bỏ lượt này)':'Mời trả bài sau câu chung');
+    text('callBtn',board?'Đổi bạn (bỏ lượt này)':s.question.exhausted?'Mời trả bài ngay':'Mời trả bài sau câu chung');
     html('activity', s.log.slice(0,8).map(e=>`<p class="${escape(e.kind)}">${escape(e.text)}</p>`).join(''));
     text('pauseBtn', s.paused?'Tiếp tục học':'Tạm dừng');
     document.querySelectorAll('[data-action]').forEach(el => el.disabled = (s.paused && el.dataset.action !== 'pause') || (q.exhausted&&['next','reveal'].includes(el.dataset.action)));
-    $('callBtn').disabled=s.paused||!s.question.revealed||lesson.ended||(!board&&!s.queue.length);
+    $('callBtn').disabled=s.paused||(!s.question.revealed&&!s.question.exhausted)||lesson.ended||(!board&&!s.queue.length);
+    $('backendStatus').hidden=!!s.boardBank;
+    text('backendStatus','Server PC đang chạy bản cũ, chưa có trả bài riêng. Khởi động lại start-preview.cmd cho phòng thử hoặc start-classroom.cmd cho bản LIVE.');
     text('bankStatus',s.questionBank?`Câu chung: còn ${s.questionBank.remaining}/${s.questionBank.total}. Trả bài riêng: còn ${s.boardBank?.remaining||0}/${s.boardBank?.total||0}. Lịch sử được giữ khi khởi động lại hoặc xóa lớp.`:'');
     text('storageStatus',s.storage?.durable?'Lịch sử đang lưu trên Redis; được giữ khi deploy lại.':s.cloud?'Lịch sử đang lưu tạm trên server. Xuất bản sao trước khi deploy lại, hoặc cấu hình Redis để lưu tự động.':'Lịch sử đang lưu trên PC. Có thể xuất bản sao để chuyển sang server khác.');
     text('monitorGiftLabel', `Quà ${s.settings.monitorCoins} xu · 2 phút`);

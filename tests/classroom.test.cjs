@@ -84,7 +84,8 @@ test('gift upgrades existing queue entry without duplicating or charging twice',
 test('priority credits are capped and expire', () => {
   const { room, advance } = fixture();
   room.gift(user('An'), { count: 100, coins: 100 });
-  assert.equal(room.students.get('An').credits, 3);
+  assert.equal(room.students.get('An').credits, 2);
+  assert.equal(room.queue[0].priority,true);
   advance(600001);
   assert.equal(room.students.get('An').credits, 0);
 });

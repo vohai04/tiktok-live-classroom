@@ -12,13 +12,13 @@ Lớp học không gắn tên thầy cố định, khung dọc 9:16, người xe
 - Mỗi tiết 10 câu, tổng kết top 3 và tổ dẫn đầu, tự sang tiết mới sau 15 giây.
 - Tổ trưởng theo thành tích, chuỗi đúng, bảng người trả lời nhanh và rung chuông tập thể.
 - Người dẫn đầu **tổng xu quà tặng trong phiên** trở thành **Thầy danh dự**, ghi tên bên nhân vật thầy giáo. Chưa có quà thì không hiện tên; bằng xu giữ người đang đứng lớp, chỉ đổi khi có người vượt lên. Combo chỉ cộng giá trị của các quà mới, không cộng lại tổng combo. Danh hiệu không cộng điểm học tập. Xóa lớp hoặc khởi động lại xóa tổng xu và tên danh dự của phiên.
-- Quà cho lượt ưu tiên lên bảng; đủ mốc được làm lớp trưởng 2 phút, ngồi bàn danh dự có vương miện. Quà không cộng điểm học tập.
+- Tặng quà tự đăng ký một lượt trả bài ưu tiên, không cần bình luận thêm. Nếu đang xếp hàng thì nâng ưu tiên, không tạo lượt trùng. Nếu đang trả bài thì quà giữ quyền ưu tiên cho lần đăng ký sau; đủ mốc được làm lớp trưởng 2 phút, ngồi bàn danh dự có vương miện. Quà không cộng điểm học tập.
 - Bình luận `vỗ tay` để cổ vũ, `thành tích` để nghe điểm cá nhân.
 - Giọng đọc tiếng Việt tự đọc câu hỏi, kết quả và sự kiện; ưu tiên giọng Microsoft An trên PC Windows khi mở bản cloud.
 
 ### Điều khiển lượt trả bài
 
-Đăng ký không ngắt câu chung. Sau 8 giây công bố đáp án câu chung, thầy tự gọi người đang chờ (hai lượt ưu tiên xen một lượt thường). Hàng chờ giữ tối đa 10 phút. Khi hết bài riêng mới, game báo hết kho và tiếp tục câu chung, không phát lại bài cũ.
+Đăng ký không ngắt câu chung. Sau 8 giây công bố đáp án câu chung, thầy tự gọi người đang chờ (hai lượt ưu tiên xen một lượt thường). Hàng chờ giữ tối đa 10 phút. Khi hết câu chung nhưng còn bài riêng, thầy vẫn nhận đăng ký và gọi trả bài riêng mà không lặp lại câu chung cũ. Khi hết bài riêng mới, game báo hết kho và tiếp tục câu chung, không phát lại bài cũ.
 
 Trong điều khiển, **Mời trả bài sau câu chung** cho phép gọi sớm sau khi đã chốt đáp án. Khi đang trả bài, **Đổi bạn (bỏ lượt này)** bỏ lượt chưa làm xong, không tặng sao; **Chốt đáp án** kết thúc lượt, **Câu tiếp theo** quay về câu chung. Nếu học sinh đã trả lời đúng, đổi lượt không thu hồi sao. Tạm dừng hoặc chờ mở lớp sẽ đóng băng cả đồng hồ trả bài. Sổ trả bài trên bảng điều khiển theo dõi sao và số lượt từng người.
 
