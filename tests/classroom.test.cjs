@@ -11,7 +11,7 @@ const { normalizeGiftPayload, getGiftComboDelta } = require('../lib/tiktok-gift-
 const user = name => ({ id: name, name });
 function fixture() {
   let time = 1000000;
-  const room = new Classroom({ now: () => time,deck:new QuestionDeck({questions:fixtureQuestions,random:()=>0,shuffleOptions:false}) });
+  const room = new Classroom({ now: () => time,deck:new QuestionDeck({questions:[...fixtureQuestions,...require('../lib/classroom-board-questions.cjs')],random:()=>0,shuffleOptions:false}) });
   return { room, advance(ms) { time += ms; room.tick(); } };
 }
 function lessonFixture() {
@@ -59,8 +59,8 @@ test('accented full-text answers distinguish Vietnamese words; ambiguous unaccen
 });
 test('two priority students are followed by one ordinary student', () => {
   const { room } = fixture();
-  room.comment(user('Đang học'), 'giơ tay');
   room.comment(user('Thường'), 'giơ tay');
+  room.control('reveal');
   for (const name of ['Ưu tiên 1','Ưu tiên 2','Ưu tiên 3']) {
     room.gift(user(name), { count: 1, coins: 1 });
     room.comment(user(name), 'giơ tay');
@@ -72,7 +72,6 @@ test('two priority students are followed by one ordinary student', () => {
 });
 test('gift upgrades existing queue entry without duplicating or charging twice', () => {
   const { room } = fixture();
-  room.comment(user('Đang học'), 'giơ tay');
   room.comment(user('An'), 'giơ tay');
   room.gift(user('An'), { count: 1, coins: 1, eventId: 'gift-1' });
   room.gift(user('An'), { count: 1, coins: 1, eventId: 'gift-1' });

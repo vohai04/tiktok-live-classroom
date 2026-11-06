@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node classroom-server.cjs",
     "dev": "node --watch classroom-server.cjs",
-    "test": "node --test tests/classroom.test.cjs tests/question-deck.test.cjs tests/cloud.test.cjs tests/narration.test.cjs",
+    "test": "node --test tests/classroom.test.cjs tests/question-deck.test.cjs tests/cloud.test.cjs tests/narration.test.cjs tests/board.test.cjs",
     "test:cloud": "node tests/cloud-smoke.cjs",
     "legacy": "bun run server.js",
     "inspect:glb": "node scripts/inspect-glb.mjs"

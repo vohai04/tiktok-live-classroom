@@ -8,7 +8,7 @@
   document.getElementById('soundBtn').textContent='Nghe thử tại bảng điều khiển';
   let sessionToken = '', latest, toastTimer, audio, sound = obs, lastEvent = 0, settingsSignature = '';
   const voiceSeen = new Set();
-  let voiceQueue = [], speaking = false, voiceRound = 0, activeSpeech = '';
+  let voiceQueue = [], speaking = false, voiceRound = 0, activeSpeech = '',speechScene='';
   let speechMode='audio',browserVoice=null,speechEpoch=0,nativeUtterance=null;
   const voiceProbeUntil=Date.now()+2000;
   let monitorKey='',promotionTimer;
@@ -58,6 +58,8 @@
     const mode=s.cloud&&browserVoice?'native':'audio';
     if(mode!==speechMode){stopSpeech();voiceQueue=[];voiceSeen.clear();speechMode=mode;}
     if(voiceRound!==s.question.round){voiceRound=s.question.round;voiceQueue=[];stopSpeech();}
+    const scene=s.stage?.question?`${s.stage.question.id}:${s.stage.result?'result':'question'}`:'';
+    if(scene!==speechScene){speechScene=scene;voiceQueue=[];stopSpeech();}
     if(s.paused){if(speechMode==='native')window.speechSynthesis.pause();else speechPlayer.pause();}
     else if(speaking){if(speechMode==='native'){if(window.speechSynthesis.paused)window.speechSynthesis.resume();}else if(speechPlayer.paused)speechPlayer.play().catch(()=>{speaking=false;});}
     if(s.cloud&&!browserVoice&&Date.now()<voiceProbeUntil)return;
@@ -66,6 +68,8 @@
       if(voiceSeen.has(e.id))continue;voiceSeen.add(e.id);
       if(voiceSeen.size>500)voiceSeen.delete(voiceSeen.values().next().value);
       if(e.round!==s.question.round || Date.now()-e.at>30000 || (e.kind==='question'&&s.question.revealed))continue;
+      if(e.kind.startsWith('board-')&&(!s.stage?.question||e.boardId!==s.stage.question.id||(e.kind==='board-question'&&s.stage.result)||(e.kind==='board-result'&&!s.stage.result)))continue;
+      if(s.stage?.question&&['question','answer'].includes(e.kind))continue;
       if(voiceQueue.length<4)voiceQueue.push(e);
     }
     text('voiceStatus',speechMode==='native'?`Giọng tiếng Việt: Microsoft An trên PC${sound?' · Đã bật':' · Đang tắt trên bảng điều khiển'}`:s.narration?.status==='ready'?`Giọng tiếng Việt: ${s.narration.voice}${sound?' · Đã bật':' · Đang tắt trên bảng điều khiển'}`:`Giọng đọc: ${s.narration?.error || 'Đang chuẩn bị…'}`);
@@ -113,22 +117,23 @@
     return `<svg class="${extraClass}" style="--shirt:${shirts[p.team % 3]};--skin:${skins[p.team % 3]};--hair:${['#443026','#77502e','#2b2424'][p.team%3]}" aria-hidden="true"><use href="#${back?'pupil-back':'pupil'}"></use></svg>`;
   }
   function render(s) {
-    latest = s; const q = s.question;
+    latest = s; const board=s.stage?.question?s.stage:null;
+    const q = board?{...board.question,endAt:board.until,answerCount:board.result?1:0}:s.question;
     const now = s.clockAt??(s.paused ? s.pausedAt : s.now);
     const seconds = q.exhausted?0:Math.max(0, Math.ceil((q.endAt-now)/1000));
     const lesson=s.lesson||{number:1,question:1,ended:false};
     const captains=s.captains||[null,null,null];
-    const timerLabel=q.exhausted?'Hết kho':s.waiting?'Chờ mở lớp':s.paused?'Tạm dừng':q.revealed?`Đổi câu ${seconds}s`:`Còn ${seconds}s`;
-    text('subject', subjects[q.subject]); text('round', `Tiết ${lesson.number} · ${lesson.question}/10`); text('timer',timerLabel);
-    $('timer').setAttribute('aria-label',q.revealed?`Chuyển câu sau ${seconds} giây`:s.waiting?'Chờ mở lớp':`Còn ${seconds} giây trả lời`);
+    const timerLabel=q.exhausted?'Hết kho':s.waiting?'Chờ mở lớp':s.paused?'Tạm dừng':q.revealed?`${board?'Về chỗ':'Đổi câu'} ${seconds}s`:`Còn ${seconds}s`;
+    text('subject', board?'Trả bài riêng':subjects[q.subject]); text('round', board?'Đúng +1 sao':`Tiết ${lesson.number} · ${lesson.question}/10`); text('timer',timerLabel);
+    $('timer').setAttribute('aria-label',q.revealed?`${board?'Về chỗ':'Chuyển câu'} sau ${seconds} giây`:s.waiting?'Chờ mở lớp':`Còn ${seconds} giây trả lời`);
     $('timer').classList.toggle('urgent', seconds <= 5 && !q.revealed&&!s.waiting&&!s.paused);
     $('timer').classList.toggle('waiting',!!s.waiting||!!s.paused||!!q.exhausted);
     $('timer').classList.toggle('revealed',!!q.revealed);
-    $('timerBar').style.width = `${Math.min(100, seconds/(q.revealed ? 8 : s.settings.questionSeconds)*100)}%`;
+    $('timerBar').style.width = `${Math.min(100, seconds/(board?(q.revealed?10:25):(q.revealed ? 8 : s.settings.questionSeconds))*100)}%`;
     text('questionText', q.text);
     html('options', q.options.map((option,i) => `<div class="option ${q.revealed ? (i===q.correct ? 'correct':'wrong') : ''}"><b>${'ABCD'[i]}</b><span>${escape(option)}</span></div>`).join(''));
-    text('answerCount', `${q.answerCount} bạn đã trả lời`);
-    text('boardHint', q.exhausted?'Chờ bổ sung câu mới':s.waiting?'Chờ mở điều khiển hoặc kết nối LIVE':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
+    text('answerCount', board?(board.result?'Đã kết thúc lượt trả bài':'Chỉ bạn được gọi trả lời'):`${q.answerCount} bạn đã trả lời`);
+    text('boardHint',board?(board.result?q.explain:'Cả lớp: bình luận “vỗ tay”'):q.exhausted?'Chờ bổ sung câu mới':s.waiting?'Chờ mở điều khiển hoặc kết nối LIVE':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
     const n = s.students.length;
     const teamMembers=[0,1,2].map(team=>s.students.filter(p=>p.team===team));
     const pages = Math.max(1,...teamMembers.map(m=>Math.ceil(m.length/10))), page = pages > 1 ? Math.floor(s.now/15000)%pages : 0;
@@ -137,16 +142,16 @@
     const queueIds = new Set(s.queue.map(p => p.id));
     const winners = new Set(s.winners.map(p => p.id));
     html('desks', Array.from({ length:30 },(_,i) => {
-      const p = seats[i], team=Math.floor((i%6)/2), isMonitor=p&&s.monitor?.id===p.id;
+      const p = seats[i], team=Math.floor((i%6)/2), isMonitor=p&&s.monitor?.id===p.id,isBoard=p&&board?.id===p.id;
       const captain=p&&captains[team]?.id===p.id;
-      return `<div class="desk team-${team} ${p?'':'empty'} ${isMonitor?'is-monitor':''} ${p&&winners.has(p.id)?'answered':''}" data-team="${team+1}">${p&&!isMonitor ? avatar(p,'',true) : ''}<div class="desktop"></div><span class="desk-name" ${p?`title="Tổ ${team+1}: ${escape(p.name)}${captain?' · Tổ trưởng':''}${isMonitor?' · Đang ngồi bàn danh dự':''}"`:''}>${p?`<i class="team-number">${team+1}</i>${isMonitor?'👑 ':captain?'🏅 ':''}${escape(p.name)}`:'Chỗ trống'}${p && p.credits>0?' 🌹':''}</span>${isMonitor?'<span class="seat-moved">Bàn danh dự ↗</span>':''}${p&&p.applauseUntil>s.now?'<span class="pupil-applause">👏</span>':p&&p.streak>=3?`<span class="pupil-streak">🔥${p.streak}</span>`:''}${p&&!isMonitor&&queueIds.has(p.id)?'<span class="hand">✋</span>':''}${p&&!isMonitor&&winners.has(p.id)?'<span class="desk-answer">✓</span>':''}</div>`;
+      return `<div class="desk team-${team} ${p?'':'empty'} ${isMonitor?'is-monitor':''} ${p&&p.boardCorrect>=3?'board-scholar':''} ${p&&winners.has(p.id)?'answered':''}" data-team="${team+1}">${p&&!isMonitor&&!isBoard ? avatar(p,'',true) : ''}<div class="desktop"></div><span class="desk-name" ${p?`title="Tổ ${team+1}: ${escape(p.name)}${captain?' · Tổ trưởng':''}${p.boardCorrect>=3?' · Học sinh bản lĩnh':''}"`:''}>${p?`<i class="team-number">${team+1}</i>${isMonitor?'👑 ':captain?'🏅 ':''}${escape(p.name)}`:'Chỗ trống'}${p && p.credits>0?' 🌹':''}</span>${isBoard?'<span class="seat-moved">Đang trả bài ↗</span>':isMonitor?'<span class="seat-moved">Bàn danh dự ↗</span>':''}${p&&!isBoard&&p.applauseUntil>s.now?'<span class="pupil-applause">👏</span>':p&&p.streak>=3?`<span class="pupil-streak">🔥${p.streak}</span>`:''}${p&&!isBoard&&!isMonitor&&queueIds.has(p.id)?'<span class="hand">✋</span>':''}${p&&!isBoard&&!isMonitor&&winners.has(p.id)?'<span class="desk-answer">✓</span>':''}${p&&p.boardCorrect>0?`<span class="board-stars">★${p.boardCorrect}</span>`:''}</div>`;
     }).join(''));
     text('monitor', s.monitor ? `⭐ Lớp trưởng: ${s.monitor.name} · ${Math.max(0,Math.ceil((s.monitor.until-s.now)/1000))}s` : `⭐ Tặng quà từ ${s.settings.monitorCoins} xu → lớp trưởng 2 phút`);
     const stagePlayer = s.students.find(p => p.id === s.stage?.id);
-    text('atBoard', stagePlayer ? `Đang lên bảng: ${stagePlayer.name}${s.stage.priority?' 🌹':''}` : 'Đăng ký lên bảng qua bình luận');
+    text('atBoard', stagePlayer ? `Trả bài: ${stagePlayer.name}${s.stage.priority?' 🌹':''}` : 'LÊN BẢNG · Trả bài riêng, đúng nhận 1 sao');
     const monitorPlayer=s.students.find(p=>p.id===s.monitor?.id);
     const key=monitorPlayer?`${monitorPlayer.id}:${s.monitor.until}`:'';
-    html('monitorSeat',monitorPlayer?`<div class="monitor-ribbon">LỚP TRƯỞNG</div><div class="monitor-halo"></div><span class="monitor-crown">👑</span>${avatar(monitorPlayer,'monitor-avatar')}<div class="monitor-desk"></div><strong class="monitor-name" title="${escape(monitorPlayer.name)}">${escape(monitorPlayer.name)}</strong><span class="monitor-team">Tổ ${monitorPlayer.team+1} · Bàn danh dự</span>`:'<div class="monitor-ribbon">BÀN LỚP TRƯỞNG</div><span class="monitor-vacant-crown">♛</span><div class="monitor-desk"></div><span class="monitor-vacant">Vị trí danh dự<br>cạnh thầy giáo</span>');
+    html('monitorSeat',monitorPlayer?`<div class="monitor-ribbon">LỚP TRƯỞNG</div><div class="monitor-halo"></div><span class="monitor-crown">👑</span>${board?.id===monitorPlayer.id?'<span class="monitor-vacant">Đang trả bài<br>trước bảng ↖</span>':avatar(monitorPlayer,'monitor-avatar')}<div class="monitor-desk"></div><strong class="monitor-name" title="${escape(monitorPlayer.name)}">${escape(monitorPlayer.name)}</strong><span class="monitor-team">Tổ ${monitorPlayer.team+1} · Bàn danh dự</span>`:'<div class="monitor-ribbon">BÀN LỚP TRƯỞNG</div><span class="monitor-vacant-crown">♛</span><div class="monitor-desk"></div><span class="monitor-vacant">Vị trí danh dự<br>cạnh thầy giáo</span>');
     $('monitorSeat').classList.toggle('occupied',!!monitorPlayer);
     if(key!==monitorKey){
       monitorKey=key;clearTimeout(promotionTimer);$('monitorSeat').classList.remove('promoted');
@@ -159,6 +164,12 @@
     const honor=s.leaderboard.filter(p=>p.correct>0).slice(0,5);
     const showFast=q.revealed&&!lesson.ended&&s.winners.length;
     html('roundWinners',showFast?`<h3>⚡ Trả lời đúng nhanh nhất câu vừa rồi</h3>${s.winners.slice(0,3).map((p,i)=>`<p class="fast-result"><span class="honor-rank">${i+1}</span><span class="honor-name">${escape(p.name)}</span><b>${(p.elapsed/1000).toFixed(2)}s</b><small>+10</small></p>`).join('')}<div class="result-note">${s.winners.length} bạn đúng · ${s.winners.filter(p=>p.streak>=3).length} bạn có chuỗi từ 3</div>`:`<h3>🏅 Vinh danh · Trả lời đúng nhiều nhất</h3>${honor.length?honor.map((p,i)=>`<p><span class="honor-rank">${i+1}</span><span class="honor-name">${escape(p.name)}</span><b>${p.correct} câu đúng</b><small>${p.score}đ</small></p>`).join(''):'<span class="empty">Chưa có bạn trả lời đúng.<br>Bình luận đáp án để ghi tên lên bảng!</span>'}`);
+    $('roundWinners').classList.toggle('board-turn',!!board);
+    if(board&&stagePlayer){
+      const result=board.result,correct=result?.outcome==='correct';
+      const verdict=!result?'Lượt trả bài của em':correct?'Chính xác! +1 sao':result.outcome==='wrong'?'Chưa đúng, cố gắng nhé':result.outcome==='timeout'?'Hết giờ trả bài':'Hẹn em ở lượt sau';
+      html('roundWinners',`<h3>${correct?'★':'✎'} ${verdict}</h3><div class="board-pupil">${avatar(stagePlayer,'board-avatar')}<div><strong title="${escape(stagePlayer.name)}">${escape(stagePlayer.name)}</strong><span>Tổ ${stagePlayer.team+1} · ★ ${stagePlayer.boardCorrect||0} sao trả bài</span><p>${result?(stagePlayer.boardCorrect>=3?'🏅 Học sinh bản lĩnh':'Đủ 3 sao → Học sinh bản lĩnh'):'Bình luận A/B/C/D để trả lời'}</p><small>${result?'Cả lớp vỗ tay, mời bạn về chỗ!':'Cả lớp cùng cổ vũ bạn nhé!'}</small></div></div>`);
+    }
     html('teamScores', (s.lessonTeams||s.teams).map((score,i)=>`<div class="team-score team-${i}"><span>Tổ ${i+1} · ${['Măng non','Hoa phượng','Sao nhỏ'][i]}</span><b>${score}đ</b></div>`).join(''));
     html('teamLabels',teamMembers.map((members,i)=>`<div class="team-label team-${i}"><strong>Tổ ${i+1} · ${members.length} bạn</strong><span title="${escape(captains[i]?.name||'')}">${captains[i]?`🏅 ${escape(captains[i].name)}`:'Tổ trưởng: chờ thành tích'}</span></div>`).join(''));
     const challenge=s.challenge;
@@ -196,10 +207,14 @@
     const locked = ['connected','connecting','disconnected'].includes(s.live.status);
     document.querySelectorAll('.simulator button,.simulator input').forEach(el => el.disabled = locked);
     html('leaderboard', s.leaderboard.length ? s.leaderboard.map((p,i)=>`<li><span>${i+1}</span><span>${escape(p.name)}${s.monitor?.id===p.id?' 👑':''}<small>${p.correct} đúng · Kỷ lục chuỗi ${p.bestStreak||0} · ⚡ ${p.fastest||0}</small></span><b>${p.score} điểm</b></li>`).join('') : '<li class="empty-leader">Điểm danh để có tên trong sổ đầu bài.</li>');
+    const boardLeaders=s.students.filter(p=>p.boardAttempts>0).sort((a,b)=>b.boardCorrect-a.boardCorrect).slice(0,6);
+    html('boardRecords',boardLeaders.length?boardLeaders.map(p=>`<li><span>★</span><span>${escape(p.name)}<small>${p.boardCorrect>=3?'🏅 Học sinh bản lĩnh':`${3-p.boardCorrect} sao nữa để nhận danh hiệu`} · ${p.boardAttempts} lượt trả bài</small></span><b>${p.boardCorrect} sao</b></li>`).join(''):'<li class="empty-leader">Bình luận “lên bảng” để thử bài riêng trong 25 giây.</li>');
+    text('callBtn',board?'Đổi bạn (bỏ lượt này)':'Mời trả bài sau câu chung');
     html('activity', s.log.slice(0,8).map(e=>`<p class="${escape(e.kind)}">${escape(e.text)}</p>`).join(''));
     text('pauseBtn', s.paused?'Tiếp tục học':'Tạm dừng');
     document.querySelectorAll('[data-action]').forEach(el => el.disabled = (s.paused && el.dataset.action !== 'pause') || (q.exhausted&&['next','reveal'].includes(el.dataset.action)));
-    text('bankStatus',s.questionBank?`Kho câu hỏi: ${s.questionBank.used}/${s.questionBank.total} đã dùng · còn ${s.questionBank.remaining} câu mới. Lịch sử được giữ khi khởi động lại hoặc xóa lớp.`:'');
+    $('callBtn').disabled=s.paused||!s.question.revealed||lesson.ended||(!board&&!s.queue.length);
+    text('bankStatus',s.questionBank?`Câu chung: còn ${s.questionBank.remaining}/${s.questionBank.total}. Trả bài riêng: còn ${s.boardBank?.remaining||0}/${s.boardBank?.total||0}. Lịch sử được giữ khi khởi động lại hoặc xóa lớp.`:'');
     text('storageStatus',s.storage?.durable?'Lịch sử đang lưu trên Redis; được giữ khi deploy lại.':s.cloud?'Lịch sử đang lưu tạm trên server. Xuất bản sao trước khi deploy lại, hoặc cấu hình Redis để lưu tự động.':'Lịch sử đang lưu trên PC. Có thể xuất bản sao để chuyển sang server khác.');
     text('monitorGiftLabel', `Quà ${s.settings.monitorCoins} xu · 2 phút`);
     const signature = JSON.stringify(s.settings);

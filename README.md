@@ -6,12 +6,20 @@ Lớp học của **Thầy Bình**, khung dọc 9:16, người xem tham gia bằ
 
 - Bình luận `vào lớp` để điểm danh, tự chia 3 tổ và hiện nhân vật tại ghế.
 - Trả lời A/B/C/D hoặc nội dung đáp án; chốt mới công bố kết quả, đúng +10 điểm.
-- Kho 120 câu hỏi, xáo trộn lựa chọn và lưu lịch sử chống lặp qua các lần khởi động.
+- Kho 120 câu hỏi chung và 120 bài toán trả riêng, xáo trộn lựa chọn và lưu lịch sử chống lặp qua các lần khởi động.
+- Bình luận `lên bảng` để đăng ký trả bài riêng sau câu chung. Tối đa một lượt giữa hai câu chung; bạn được gọi có 25 giây, chỉ bình luận của chính bạn được tính. Cả lớp dùng `vỗ tay` để cổ vũ.
+- Trả bài đúng nhận 1 sao riêng, đủ 3 sao có danh hiệu **Học sinh bản lĩnh** và viền bàn vàng. Sai/hết giờ không trừ điểm. Kết quả hiện 10 giây rồi học sinh về chỗ; điểm và bảng vinh danh câu chung giữ riêng. Sao, danh hiệu, học sinh và điểm giữ trong phiên chạy; xóa lớp hoặc khởi động lại sẽ xóa thành tích, còn lịch sử câu hỏi vẫn được giữ.
 - Mỗi tiết 10 câu, tổng kết top 3 và tổ dẫn đầu, tự sang tiết mới sau 15 giây.
 - Tổ trưởng theo thành tích, chuỗi đúng, bảng người trả lời nhanh và rung chuông tập thể.
 - Quà cho lượt ưu tiên lên bảng; đủ mốc được làm lớp trưởng 2 phút, ngồi bàn danh dự có vương miện. Quà không cộng điểm học tập.
 - Bình luận `vỗ tay` để cổ vũ, `thành tích` để nghe điểm cá nhân.
 - Giọng đọc tiếng Việt tự đọc câu hỏi, kết quả và sự kiện; ưu tiên giọng Microsoft An trên PC Windows khi mở bản cloud.
+
+### Điều khiển lượt trả bài
+
+Đăng ký không ngắt câu chung. Sau 8 giây công bố đáp án câu chung, thầy tự gọi người đang chờ (hai lượt ưu tiên xen một lượt thường). Hàng chờ giữ tối đa 10 phút. Khi hết bài riêng mới, game báo hết kho và tiếp tục câu chung, không phát lại bài cũ.
+
+Trong điều khiển, **Mời trả bài sau câu chung** cho phép gọi sớm sau khi đã chốt đáp án. Khi đang trả bài, **Đổi bạn (bỏ lượt này)** bỏ lượt chưa làm xong, không tặng sao; **Chốt đáp án** kết thúc lượt, **Câu tiếp theo** quay về câu chung. Nếu học sinh đã trả lời đúng, đổi lượt không thu hồi sao. Tạm dừng hoặc chờ mở lớp sẽ đóng băng cả đồng hồ trả bài. Sổ trả bài trên bảng điều khiển theo dõi sao và số lượt từng người.
 
 ## Chạy trên PC
 

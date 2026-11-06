@@ -9,7 +9,7 @@ const { Classroom } = require('./lib/classroom-engine.cjs');
 const {QuestionDeck,validateHistory} = require('./lib/classroom-question-deck.cjs');
 const {HistoryStore}=require('./lib/classroom-history-store.cjs');
 const {createAccess}=require('./lib/classroom-access.cjs');
-const questions=require('./lib/classroom-questions.cjs');
+const questions=[...require('./lib/classroom-questions.cjs'),...require('./lib/classroom-board-questions.cjs')];
 const { Narrator } = require('./lib/classroom-narrator.cjs');
 const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
 
