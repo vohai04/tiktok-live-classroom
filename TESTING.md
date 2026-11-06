@@ -48,4 +48,6 @@ Sau kiểm tra cục bộ, dùng chế độ thử nếu tài khoản có. Kiể
 - Chưa kiểm chứng toàn bộ luồng OBS → LIVE Studio → TikTok trên tài khoản người dùng. Kết nối TikTok từng tự ngắt; chưa được xác nhận ổn định cho phiên dài.
 
 Tham khảo: https://obsproject.com/kb/browser-source và https://obsproject.com/kb/virtual-camera-guide
-- Giao diện thầy Bình: đã kiểm tra nền mới, bảng tên thầy, lớp trưởng, vinh danh, tổ trưởng, ghế học sinh và tổng kết ở 1080 px / 390 px; không phát hiện các vùng tên bị chồng. Kiểm tra lại bố cục 120 câu với đồng hồ lớn: qua.
+- Giao diện thầy giáo: đã kiểm tra nền mới, bảng tên thầy, lớp trưởng, vinh danh, tổ trưởng, ghế học sinh và tổng kết ở 1080 px / 390 px; không phát hiện các vùng tên bị chồng. Kiểm tra lại bố cục 120 câu với đồng hồ lớn: qua.
+
+- Thầy danh dự: 57 kiểm tra Node qua trên PC và Linux/Docker; đã thử API/WebSocket thật ở phòng cô lập từ chưa có tên → tặng quà → hòa xu → vượt hạng → xóa lớp. Tổng combo 1→2→3 chỉ cộng 3 xu; tên và tổng xu không làm thay đổi điểm học tập. Đã xem ảnh và kiểm tra khung 1080 × 1920 / 390 × 844, không thấy bảng tên chồng vùng thông tin lớp.

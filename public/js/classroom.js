@@ -146,6 +146,9 @@
     text('answerCount', board?(board.result?'Đã kết thúc lượt trả bài':'Bạn được gọi trả lời'):`${q.answerCount} bạn đã trả lời`);
     text('boardHint',board?(board.result?q.explain:'Cả lớp: “vỗ tay”'):q.exhausted?'Chờ bổ sung câu mới':s.waiting?'Chờ mở điều khiển hoặc kết nối LIVE':q.revealed ? `${s.winners.length} bạn trả lời đúng` : 'Gõ đáp án hoặc A/B/C/D');
     fitQuestionText();
+    const teacher=s.teacher;
+    $('teacherHonor').hidden=!teacher;
+    if(teacher){html('teacherHonor',`<small>Thầy danh dự</small><strong title="${escape(teacher.name)}">${escape(teacher.name)}</strong><span>♛ ${Number(teacher.coins).toLocaleString('vi-VN')} xu</span>`);}
     const n = s.students.length;
     const teamMembers=[0,1,2].map(team=>s.students.filter(p=>p.team===team));
     const pages = Math.max(1,...teamMembers.map(m=>Math.ceil(m.length/10))), page = pages > 1 ? Math.floor(s.now/15000)%pages : 0;
@@ -154,16 +157,16 @@
     const queueIds = new Set(s.queue.map(p => p.id));
     const winners = new Set(s.winners.map(p => p.id));
     html('desks', Array.from({ length:30 },(_,i) => {
-      const p = seats[i], team=Math.floor((i%6)/2), isMonitor=p&&s.monitor?.id===p.id,isBoard=p&&board?.id===p.id;
+      const p = seats[i], team=Math.floor((i%6)/2), isMonitor=p&&s.monitor?.id===p.id,isBoard=p&&board?.id===p.id,isTeacher=p&&teacher?.id===p.id;
       const captain=p&&captains[team]?.id===p.id;
-      return `<div class="desk team-${team} ${p?'':'empty'} ${isMonitor?'is-monitor':''} ${p&&p.boardCorrect>=3?'board-scholar':''} ${p&&winners.has(p.id)?'answered':''}" data-team="${team+1}">${p&&!isMonitor&&!isBoard ? avatar(p,'',true) : ''}<div class="desktop"></div><span class="desk-name" ${p?`title="Tổ ${team+1}: ${escape(p.name)}${captain?' · Tổ trưởng':''}${p.boardCorrect>=3?' · Học sinh bản lĩnh':''}"`:''}>${p?`<i class="team-number">${team+1}</i>${isMonitor?'👑 ':captain?'🏅 ':''}${escape(p.name)}`:'Chỗ trống'}${p && p.credits>0?' 🌹':''}</span>${isBoard?'<span class="seat-moved">Đang trả bài ↗</span>':isMonitor?'<span class="seat-moved">Bàn danh dự ↗</span>':''}${p&&!isBoard&&p.applauseUntil>s.now?'<span class="pupil-applause">👏</span>':p&&p.streak>=3?`<span class="pupil-streak">🔥${p.streak}</span>`:''}${p&&!isBoard&&!isMonitor&&queueIds.has(p.id)?'<span class="hand">✋</span>':''}${p&&!isBoard&&!isMonitor&&winners.has(p.id)?'<span class="desk-answer">✓</span>':''}${p&&p.boardCorrect>0?`<span class="board-stars">★${p.boardCorrect}</span>`:''}</div>`;
+      return `<div class="desk team-${team} ${p?'':'empty'} ${isMonitor?'is-monitor':''} ${isTeacher?'is-teacher':''} ${p&&p.boardCorrect>=3?'board-scholar':''} ${p&&winners.has(p.id)?'answered':''}" data-team="${team+1}">${p&&!isMonitor&&!isBoard&&!isTeacher ? avatar(p,'',true) : ''}<div class="desktop"></div><span class="desk-name" ${p?`title="Tổ ${team+1}: ${escape(p.name)}${isTeacher?' · Thầy danh dự':captain?' · Tổ trưởng':''}${p.boardCorrect>=3?' · Học sinh bản lĩnh':''}"`:''}>${p?`<i class="team-number">${team+1}</i>${isTeacher?'🎓 ':isMonitor?'👑 ':captain?'🏅 ':''}${escape(p.name)}`:'Chỗ trống'}${p && p.credits>0?' 🌹':''}</span>${isBoard?'<span class="seat-moved">Đang trả bài ↗</span>':isTeacher?'<span class="seat-moved">Thầy danh dự ↗</span>':isMonitor?'<span class="seat-moved">Bàn danh dự ↗</span>':''}${p&&!isBoard&&p.applauseUntil>s.now?'<span class="pupil-applause">👏</span>':p&&p.streak>=3?`<span class="pupil-streak">🔥${p.streak}</span>`:''}${p&&!isBoard&&!isMonitor&&!isTeacher&&queueIds.has(p.id)?'<span class="hand">✋</span>':''}${p&&!isBoard&&!isMonitor&&!isTeacher&&winners.has(p.id)?'<span class="desk-answer">✓</span>':''}${p&&p.boardCorrect>0?`<span class="board-stars">★${p.boardCorrect}</span>`:''}</div>`;
     }).join(''));
     text('monitor', s.monitor ? `⭐ Lớp trưởng: ${s.monitor.name} · ${Math.max(0,Math.ceil((s.monitor.until-s.now)/1000))}s` : `⭐ Tặng quà từ ${s.settings.monitorCoins} xu → lớp trưởng 2 phút`);
     const stagePlayer = s.students.find(p => p.id === s.stage?.id);
     text('atBoard', stagePlayer ? `Trả bài: ${stagePlayer.name}${s.stage.priority?' 🌹':''}` : 'LÊN BẢNG · Trả bài đúng nhận 1 sao');
     const monitorPlayer=s.students.find(p=>p.id===s.monitor?.id);
     const key=monitorPlayer?`${monitorPlayer.id}:${s.monitor.until}`:'';
-    html('monitorSeat',monitorPlayer?`<div class="monitor-ribbon">LỚP TRƯỞNG</div><div class="monitor-halo"></div><span class="monitor-crown">👑</span>${board?.id===monitorPlayer.id?'<span class="monitor-vacant">Đang trả bài<br>trước bảng ↖</span>':avatar(monitorPlayer,'monitor-avatar')}<div class="monitor-desk"></div><strong class="monitor-name" title="${escape(monitorPlayer.name)}">${escape(monitorPlayer.name)}</strong><span class="monitor-team">Tổ ${monitorPlayer.team+1} · Bàn danh dự</span>`:'<div class="monitor-ribbon">LỚP TRƯỞNG</div><span class="monitor-vacant-crown">♛</span><div class="monitor-desk"></div><span class="monitor-vacant">Vị trí danh dự<br>cạnh thầy giáo</span>');
+    html('monitorSeat',monitorPlayer?`<div class="monitor-ribbon">LỚP TRƯỞNG</div><div class="monitor-halo"></div><span class="monitor-crown">👑</span>${teacher?.id===monitorPlayer.id?'<span class="monitor-vacant">Đang đứng lớp<br>Thầy danh dự ↖</span>':board?.id===monitorPlayer.id?'<span class="monitor-vacant">Đang trả bài<br>trước bảng ↖</span>':avatar(monitorPlayer,'monitor-avatar')}<div class="monitor-desk"></div><strong class="monitor-name" title="${escape(monitorPlayer.name)}">${escape(monitorPlayer.name)}</strong><span class="monitor-team">Tổ ${monitorPlayer.team+1} · Bàn danh dự</span>`:'<div class="monitor-ribbon">LỚP TRƯỞNG</div><span class="monitor-vacant-crown">♛</span><div class="monitor-desk"></div><span class="monitor-vacant">Vị trí danh dự<br>cạnh thầy giáo</span>');
     $('monitorSeat').classList.toggle('occupied',!!monitorPlayer);
     if(key!==monitorKey){
       monitorKey=key;clearTimeout(promotionTimer);$('monitorSeat').classList.remove('promoted');
@@ -205,7 +208,7 @@
       const p = pending.splice(index,1)[0]; ordered.push(p); run = p.priority?run+1:0;
     }
     html('queueList', ordered.length ? ordered.slice(0,4).map((p,i)=>`<span class="queue-chip ${p.priority?'priority':''}">${i+1}. ${p.priority?'🌹 ':''}${escape(p.name)}</span>`).join('') : '<span class="empty-note">Bình luận “lên bảng” để đăng ký lượt.</span>');
-    text('giftRules', `🌹 Quà: ưu tiên · ${s.settings.monitorCoins} xu: lớp trưởng`);
+    text('giftRules', `🌹 Quà ưu tiên · Top xu làm thầy · ${s.settings.monitorCoins} xu lớp trưởng`);
     $('pauseShade').hidden = !s.paused;
     const connected = s.live.status === 'connected';
     text('modeTag', s.preview?'Phòng thử':connected ? `LIVE @${s.live.username}` : s.live.status==='disconnected' ? 'Mất kết nối' : s.live.status==='connecting' ? 'Đang kết nối…' : 'Bản thử'); $('modeTag').classList.toggle('live', connected);
@@ -219,6 +222,7 @@
     const locked = ['connected','connecting','disconnected'].includes(s.live.status);
     document.querySelectorAll('.simulator button,.simulator input').forEach(el => el.disabled = locked);
     html('leaderboard', s.leaderboard.length ? s.leaderboard.map((p,i)=>`<li><span>${i+1}</span><span>${escape(p.name)}${s.monitor?.id===p.id?' 👑':''}<small>${p.correct} đúng · Kỷ lục chuỗi ${p.bestStreak||0} · ⚡ ${p.fastest||0}</small></span><b>${p.score} điểm</b></li>`).join('') : '<li class="empty-leader">Điểm danh để có tên trong sổ đầu bài.</li>');
+    html('giftLeaders',s.giftLeaders?.length?s.giftLeaders.map((p,i)=>`<li><span>${i===0?'♛':i+1}</span><span>${escape(p.name)}${teacher?.id===p.id?'<small>Thầy danh dự đang đứng lớp</small>':''}</span><b>${Number(p.coins).toLocaleString('vi-VN')} xu</b></li>`).join(''):'<li class="empty-leader">Chưa có quà tặng. Vị trí thầy giáo chưa ghi tên.</li>');
     const boardLeaders=s.students.filter(p=>p.boardAttempts>0).sort((a,b)=>b.boardCorrect-a.boardCorrect).slice(0,6);
     html('boardRecords',boardLeaders.length?boardLeaders.map(p=>`<li><span>★</span><span>${escape(p.name)}<small>${p.boardCorrect>=3?'🏅 Học sinh bản lĩnh':`${3-p.boardCorrect} sao nữa để nhận danh hiệu`} · ${p.boardAttempts} lượt trả bài</small></span><b>${p.boardCorrect} sao</b></li>`).join(''):'<li class="empty-leader">Bình luận “lên bảng” để thử bài riêng trong 25 giây.</li>');
     text('callBtn',board?'Đổi bạn (bỏ lượt này)':'Mời trả bài sau câu chung');
@@ -233,7 +237,7 @@
     if (signature !== settingsSignature) { for (const [key,value] of Object.entries(s.settings)) { if($(key))$(key).value = value; } settingsSignature = signature; }
     const newest = s.log[0];
     if (newest && newest.id > lastEvent) {
-      if (lastEvent && ['gift','monitor','stage','question'].includes(newest.kind)) chirp(newest.kind==='monitor'?'gift':newest.kind);
+      if (lastEvent && ['gift','monitor','teacher','stage','question'].includes(newest.kind)) chirp(['monitor','teacher'].includes(newest.kind)?'gift':newest.kind);
       lastEvent = newest.id;
     }
     syncSpeech(s);

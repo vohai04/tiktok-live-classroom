@@ -1,6 +1,6 @@
 # Lớp học làng · TikTok LIVE
 
-Lớp học của **Thầy Bình**, khung dọc 9:16, người xem tham gia bằng bình luận và quà tặng TikTok LIVE. Nhân vật thầy giáo khớp với giọng nam Microsoft An trên PC; đường giọng Edge dùng Nam Minh mặc định. Có phòng giả lập để kiểm tra trước khi phát.
+Lớp học không gắn tên thầy cố định, khung dọc 9:16, người xem tham gia bằng bình luận và quà tặng TikTok LIVE. Nhân vật thầy giáo khớp với giọng nam Microsoft An trên PC; đường giọng Edge dùng Nam Minh mặc định. Có phòng giả lập để kiểm tra trước khi phát.
 
 ## Chức năng
 
@@ -11,6 +11,7 @@ Lớp học của **Thầy Bình**, khung dọc 9:16, người xem tham gia bằ
 - Trả bài đúng nhận 1 sao riêng, đủ 3 sao có danh hiệu **Học sinh bản lĩnh** và viền bàn vàng. Sai/hết giờ không trừ điểm. Kết quả hiện 10 giây rồi học sinh về chỗ; điểm và bảng vinh danh câu chung giữ riêng. Sao, danh hiệu, học sinh và điểm giữ trong phiên chạy; xóa lớp hoặc khởi động lại sẽ xóa thành tích, còn lịch sử câu hỏi vẫn được giữ.
 - Mỗi tiết 10 câu, tổng kết top 3 và tổ dẫn đầu, tự sang tiết mới sau 15 giây.
 - Tổ trưởng theo thành tích, chuỗi đúng, bảng người trả lời nhanh và rung chuông tập thể.
+- Người dẫn đầu **tổng xu quà tặng trong phiên** trở thành **Thầy danh dự**, ghi tên bên nhân vật thầy giáo. Chưa có quà thì không hiện tên; bằng xu giữ người đang đứng lớp, chỉ đổi khi có người vượt lên. Combo chỉ cộng giá trị của các quà mới, không cộng lại tổng combo. Danh hiệu không cộng điểm học tập. Xóa lớp hoặc khởi động lại xóa tổng xu và tên danh dự của phiên.
 - Quà cho lượt ưu tiên lên bảng; đủ mốc được làm lớp trưởng 2 phút, ngồi bàn danh dự có vương miện. Quà không cộng điểm học tập.
 - Bình luận `vỗ tay` để cổ vũ, `thành tích` để nghe điểm cá nhân.
 - Giọng đọc tiếng Việt tự đọc câu hỏi, kết quả và sự kiện; ưu tiên giọng Microsoft An trên PC Windows khi mở bản cloud.

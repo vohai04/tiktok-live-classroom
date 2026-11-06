@@ -22,7 +22,7 @@ Nếu đã tạo dịch vụ Node trước đó: **Settings → Build → Source
 | `ADMIN_PASSWORD` | **Có** | Mật khẩu riêng từ 12 ký tự để đăng nhập điều khiển |
 | `CLASSROOM_CLOUD` | Docker đã đặt | `1` |
 | `CLASSROOM_TTS` | Docker đã đặt | `edge` |
-| `CLASSROOM_VOICE` | Tùy chọn | `vi-VN-NamMinhNeural` (giọng nam mặc định, khớp với thầy Bình) |
+| `CLASSROOM_VOICE` | Tùy chọn | `vi-VN-NamMinhNeural` (giọng nam mặc định, khớp với nhân vật thầy giáo) |
 | `CLASSROOM_PUBLIC_URL` | Chỉ khi dùng tên miền riêng / host khác | URL HTTPS của game, ví dụ `https://lop-hoc.example.com`; không có `/?obs=1` |
 | `PORT` | Không | Render tự cấp |
 | `CLASSROOM_PREVIEW` | Tùy chọn | `1` để khóa TikTok, chỉ chạy giả lập; bỏ biến này hoặc đặt `0` để kết nối LIVE |

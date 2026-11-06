@@ -11,7 +11,7 @@ const {HistoryStore}=require('./lib/classroom-history-store.cjs');
 const {createAccess}=require('./lib/classroom-access.cjs');
 const questions=[...require('./lib/classroom-questions.cjs'),...require('./lib/classroom-board-questions.cjs')];
 const { Narrator } = require('./lib/classroom-narrator.cjs');
-const { normalizeGiftPayload, getGiftComboDelta } = require('./lib/tiktok-gift-payload.cjs');
+const { normalizeGiftPayload, getGiftComboDelta, getGiftCoinValues } = require('./lib/tiktok-gift-payload.cjs');
 
 async function main(){
 const port = Number(process.env.PORT || 3000);
@@ -97,11 +97,8 @@ async function connect(username) {
   client.on(WebcastEvent.GIFT, active(data => {
     const user = userFrom(data); const gift = normalizeGiftPayload(data, user.id);
     const count = getGiftComboDelta(combo, gift); if (count <= 0) return;
-    // Unknown gift values still give queue credit; never guess a high-tier value.
-    const rawValue = data.gift?.diamondCount ?? data.gift?.diamond_count ?? data.giftDetails?.diamondCount ?? data.giftDetails?.diamond_count ?? data.diamondCount ?? data.extendedGiftInfo?.diamondCount ?? data.extendedGiftInfo?.diamond_count;
-    const value = Math.max(0, Number(rawValue) || 0);
     const eventId = gift.streakable ? `${current}:${gift.groupId}:${gift.repeatCount}` : data.msgId || data.common?.msgId;
-    room.gift(user, { count, coins: value * (gift.streakable ? gift.repeatCount : count), name: gift.giftName || 'quà', eventId });
+    room.gift(user, { count, ...getGiftCoinValues(data,gift,count), name: gift.giftName || 'quà', eventId });
   }));
   client.on(WebcastEvent.ROOM_USER, active(data => { live.viewers = Number(data.viewerCount ?? data.total ?? 0); }));
   client.on(ControlEvent.ERROR, active(err => { live.error = err.message || 'Lỗi kết nối TikTok.'; }));

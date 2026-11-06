@@ -30,3 +30,8 @@ test('arithmetic speech keeps the operation instead of stripping plus or minus s
   const n=narrator();n.speak('21 + 9 = 30. 63 − 8 = 55. 11 × 3 = 33.','board-question',1,'stage-1');
   assert.equal(n.announcements[0].text,'21 cộng 9 bằng 30. 63 trừ 8 bằng 55. 11 nhân 3 bằng 33.');
 });
+
+test('a new honorary teacher is announced by name',()=>{
+  const n=narrator();n.observe({question:{round:2},log:[{id:1,kind:'teacher',text:'Chúc mừng An trở thành Thầy danh dự với tổng 10 xu quà tặng!'}]});
+  assert.equal(n.announcements[0].kind,'teacher');assert.match(n.announcements[0].text,/An trở thành Thầy danh dự/);
+});

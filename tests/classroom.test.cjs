@@ -7,7 +7,7 @@ const fixtureQuestions=[
   {subject:'tiengviet',text:'Có công mài sắt, có ngày nên …',options:['vàng','thép','kim','bạc'],correct:2,explain:'Kiên trì.'},
   {subject:'doivui',text:'Cái gì càng lấy đi thì càng lớn?',options:['Cái túi','Cái hố','Cái cây','Cái bánh'],correct:1,explain:'Cái hố.'},
 ];
-const { normalizeGiftPayload, getGiftComboDelta } = require('../lib/tiktok-gift-payload.cjs');
+const { normalizeGiftPayload, getGiftComboDelta, getGiftCoinValues } = require('../lib/tiktok-gift-payload.cjs');
 const user = name => ({ id: name, name });
 function fixture() {
   let time = 1000000;
@@ -133,11 +133,53 @@ test('waiting during a lesson summary preserves its remaining break time',()=>{
 test('gift combo 1→2→3→final only grants three units, duplicate final is deduped', () => {
   const { room } = fixture(); const tracker = new Map();
   for (const [count,final] of [[1,false],[2,false],[3,false],[3,true],[3,true]]) {
-    const gift = normalizeGiftPayload({ giftId: 1, giftName: 'Rose', giftType: 1, repeatCount: count, repeatEnd: final, groupId: 'combo-1', diamondCount: 1 }, 'An');
+    const data={ giftId: 1, giftName: 'Rose', giftType: 1, repeatCount: count, repeatEnd: final, groupId: 'combo-1', diamondCount: 1 };
+    const gift = normalizeGiftPayload(data, 'An');
     const delta = getGiftComboDelta(tracker,gift);
-    if (delta>0) room.gift(user('An'), { count:delta, coins:count, eventId:`${gift.groupId}:${gift.repeatCount}` });
+    if (delta>0) room.gift(user('An'), { count:delta, ...getGiftCoinValues(data,gift,delta), eventId:`${gift.groupId}:${gift.repeatCount}` });
   }
   assert.equal(room.students.get('An').gifts, 3);
+  assert.equal(room.students.get('An').giftCoins,3);assert.equal(room.snapshot().teacher.coins,3);
+});
+
+test('teacher starts unnamed; highest total coins wins, ties retain the incumbent, and repeated own gifts do not reannounce',()=>{
+  const {room}=fixture();assert.equal(room.snapshot().teacher,null);assert.deepEqual(room.snapshot().giftLeaders,[]);
+  room.comment(user('Early'),'vào lớp');
+  room.gift(user('An'),{count:20,coins:20});assert.equal(room.snapshot().teacher.id,'An');
+  room.gift(user('Early'),{coins:20});assert.equal(room.snapshot().teacher.id,'An');
+  assert.equal(room.snapshot().giftLeaders[0].id,'An');
+  room.gift(user('Early'),{coins:1});assert.equal(room.snapshot().teacher.id,'Early');
+  const announcements=room.log.filter(e=>e.kind==='teacher').length;
+  room.gift(user('Early'),{coins:1});assert.equal(room.log.filter(e=>e.kind==='teacher').length,announcements);
+  room.gift(user('Big gift'),{coins:100,count:1});assert.equal(room.snapshot().teacher.id,'Big gift');
+  room.gift(user('An'),{coins:81,count:81});assert.equal(room.snapshot().teacher.id,'An');assert.equal(room.snapshot().teacher.coins,101);
+  assert.ok([...room.students.values()].every(p=>p.score===0&&p.correct===0));
+});
+
+test('duplicate gift events, unknown values and invalid coin totals cannot create a false teacher lead',()=>{
+  const {room}=fixture();room.gift(user('Unknown'),{coins:0});room.gift(user('Invalid'),{coins:Infinity});
+  assert.equal(room.snapshot().teacher,null);
+  room.gift(user('An'),{coins:10,eventId:'unique-1'});room.gift(user('An'),{coins:10,eventId:'unique-1'});
+  assert.equal(room.snapshot().teacher.coins,10);assert.equal(room.students.get('An').gifts,1);
+  const unknown=normalizeGiftPayload({giftId:2,repeatCount:5});assert.equal(getGiftCoinValues({},unknown,5).coins,0);
+  const invalid=normalizeGiftPayload({diamondCount:Infinity});assert.equal(getGiftCoinValues({diamondCount:Infinity},invalid,1).coins,0);
+});
+
+test('combo threshold stays cumulative while honorary teacher coins only credit newly received gifts',()=>{
+  const {room}=fixture(),tracker=new Map();
+  for(const count of [4,10]){
+    const data={giftId:1,giftType:1,groupId:'combo-2',repeatCount:count,diamondCount:1};
+    const gift=normalizeGiftPayload(data),delta=getGiftComboDelta(tracker,gift);
+    room.gift(user('An'),{count:delta,...getGiftCoinValues(data,gift,delta)});
+  }
+  assert.equal(room.snapshot().teacher.coins,10);assert.equal(room.monitor.id,'An');assert.equal(room.students.get('An').gifts,10);
+  room.gift(user('Expensive'),{coins:200000});assert.equal(room.snapshot().teacher.coins,200000);
+});
+
+test('teacher survives monitor timeout but a fresh class clears the honorary name and gift totals',()=>{
+  const {room,advance}=fixture();room.gift(user('An'),{coins:10});advance(120001);
+  assert.equal(room.monitor,null);assert.equal(room.snapshot().teacher.id,'An');
+  const fresh=new Classroom({deck:room.deck});assert.equal(fresh.snapshot().teacher,null);assert.deepEqual(fresh.snapshot().giftLeaders,[]);
 });
 test('settings validate thresholds and reject malformed durations', () => {
   const { room } = fixture();
