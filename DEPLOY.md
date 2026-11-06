@@ -53,7 +53,8 @@ Nếu chưa dùng Redis, bảng điều khiển có **Xuất bản sao / Nhập 
 - Khi chưa kết nối TikTok, giữ bảng điều khiển đã đăng nhập mở để tiết học tự chạy. Người lạ chỉ xem nguồn sẽ không tự làm server chạy hết kho câu hỏi. Khi TikTok đã kết nối, tiết học chạy ngay cả khi đóng bảng điều khiển.
 - Đăng nhập có hiệu lực 12 giờ, cookie HttpOnly/Secure/SameSite=Strict. Đổi mật khẩu/restart sẽ yêu cầu đăng nhập lại.
 - Thử điểm danh, quà giả lập và âm thanh trước. Sau đó mới kết nối tài khoản TikTok đang LIVE trong bảng điều khiển.
-- Giọng Edge cần Internet và dùng thư viện cộng đồng, có thể không kết nối được từ một số mạng. Khi lỗi, worker chuyển sang eSpeak NG tiếng Việt; giọng dự phòng kém tự nhiên hơn. Không có phí API TTS trong cấu hình này.
+- Trên PC Windows có giọng **Microsoft An**, màn hình game cloud tự ưu tiên giọng An cục bộ như bản PC trước đây. Nội dung lời đọc được gửi ngay qua WebSocket, không chờ file giọng cloud; không phát chồng file eSpeak. Trình duyệt phải cung cấp giọng An qua Web Speech API. Đã kiểm tra bằng Chromium trên Windows; cần kiểm tra riêng trong nguồn Liên kết của LIVE Studio/OBS vì mỗi ứng dụng có thể hỗ trợ giọng khác nhau.
+- Khi ứng dụng mở nguồn không cung cấp Microsoft An, game dùng âm thanh từ server: Edge cần Internet và dùng thư viện cộng đồng; khi lỗi sẽ dùng eSpeak NG tiếng Việt, giọng kém tự nhiên hơn. Không có phí API TTS trong cấu hình này. Không đặt `CLASSROOM_TTS=windows` trên Render Linux.
 - Trình duyệt/ứng dụng phát vẫn có chính sách autoplay riêng. OBS Browser Source cần bật âm thanh; bảng điều khiển mặc định không phát để tránh trùng tiếng. Cần ghi thử trong ứng dụng phát để xác nhận âm thanh đầu ra.
 
 Render Free có giới hạn giờ, băng thông và có thể khởi động lại. Các kết nối game có heartbeat và tự nối lại; không giữ server thức bằng bot khi không sử dụng. Tài liệu: <https://render.com/docs/free>.

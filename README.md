@@ -11,7 +11,7 @@ Game lớp học khung dọc 9:16, người xem tham gia bằng bình luận và
 - Tổ trưởng theo thành tích, chuỗi đúng, bảng người trả lời nhanh và rung chuông tập thể.
 - Quà cho lượt ưu tiên lên bảng; đủ mốc được làm lớp trưởng 2 phút, ngồi bàn danh dự có vương miện. Quà không cộng điểm học tập.
 - Bình luận `vỗ tay` để cổ vũ, `thành tích` để nghe điểm cá nhân.
-- Giọng đọc tiếng Việt tự đọc câu hỏi, kết quả và sự kiện.
+- Giọng đọc tiếng Việt tự đọc câu hỏi, kết quả và sự kiện; ưu tiên giọng Microsoft An trên PC Windows khi mở bản cloud.
 
 ## Chạy trên PC
 
@@ -42,7 +42,7 @@ Mở `start-preview.cmd`, truy cập <http://localhost:3002>. Phòng này chỉ 
 npm test
 ```
 
-36 kiểm tra luật chơi, lịch sử, đăng nhập và lưu Redis. Đã kiểm tra Docker Linux, HTTPS/WSS qua proxy và trình duyệt, âm thanh tự phát và thao tác điều khiển. Các hoạt động lớp học đã được thử với 30 học sinh ở 390 px / 1080 px. Xem [TESTING.md](TESTING.md) về phạm vi kiểm chứng và đường phát thực tế.
+39 kiểm tra luật chơi, lịch sử, đăng nhập, lưu Redis và lời đọc. Đã kiểm tra Docker Linux, HTTPS/WSS qua proxy, giọng Microsoft An cục bộ tự phát trên Chromium Windows, chống đọc trùng, tạm dừng/tiếp tục và chuyển câu. Các hoạt động lớp học đã được thử với 30 học sinh ở 390 px / 1080 px. Xem [TESTING.md](TESTING.md) về phạm vi kiểm chứng và đường phát thực tế.
 
 ## Kết nối và triển khai
 

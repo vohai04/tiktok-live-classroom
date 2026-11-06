@@ -9,6 +9,8 @@
   let sessionToken = '', latest, toastTimer, audio, sound = obs, lastEvent = 0, settingsSignature = '';
   const voiceSeen = new Set();
   let voiceQueue = [], speaking = false, voiceRound = 0, activeSpeech = '';
+  let speechMode='audio',browserVoice=null,speechEpoch=0,nativeUtterance=null;
+  const voiceProbeUntil=Date.now()+2000;
   let monitorKey='',promotionTimer;
   const speechPlayer = new Audio(); speechPlayer.preload='auto'; speechPlayer.volume=.95;
   const voiceStatus = document.createElement('p');voiceStatus.className='helper';voiceStatus.id='voiceStatus';
@@ -18,30 +20,60 @@
   socialActions.innerHTML='<button data-comment="vỗ tay" class="secondary">👏 Vỗ tay</button><button data-comment="thành tích" class="secondary">🏅 Thành tích của tôi</button>';
   document.querySelector('.answer-buttons').after(socialActions);
   const finishSpeech = () => {speaking=false;$('classroom').classList.remove('speaking');playSpeech();};
-  speechPlayer.addEventListener('ended',finishSpeech);speechPlayer.addEventListener('error',finishSpeech);
+  speechPlayer.addEventListener('ended',()=>{if(speechMode==='audio')finishSpeech();});speechPlayer.addEventListener('error',()=>{if(speechMode==='audio')finishSpeech();});
+  function stopSpeech(){
+    speechEpoch++;speechPlayer.pause();speechPlayer.removeAttribute('src');
+    if(nativeUtterance){nativeUtterance.onend=null;nativeUtterance.onerror=null;window.speechSynthesis?.cancel();nativeUtterance=null;}
+    speaking=false;$('classroom').classList.remove('speaking');
+  }
+  function findOriginalVoice(){
+    browserVoice=window.speechSynthesis?.getVoices().find(v=>/^vi([-_]VN)?$/i.test(v.lang)&&/Microsoft An(?:\b|$)/i.test(v.name))||null;
+  }
+  findOriginalVoice();
+  window.speechSynthesis?.addEventListener('voiceschanged',()=>{findOriginalVoice();if(latest)syncSpeech(latest);});
   async function playSpeech(){
     if(speaking || !sound || !voiceQueue.length || latest?.paused)return;
-    const entry=voiceQueue.shift();speaking=true;activeSpeech=entry.text;speechPlayer.src=entry.url;
+    const entry=voiceQueue.shift();speaking=true;activeSpeech=entry.text;
+    if(speechMode==='native'&&browserVoice){
+      const epoch=speechEpoch,utterance=new SpeechSynthesisUtterance(entry.text);nativeUtterance=utterance;
+      utterance.voice=browserVoice;utterance.lang='vi-VN';utterance.rate=1.1;utterance.volume=.95;
+      utterance.onstart=()=>{if(epoch===speechEpoch)$('classroom').classList.add('speaking');};
+      utterance.onend=()=>{if(epoch===speechEpoch){nativeUtterance=null;finishSpeech();}};
+      utterance.onerror=event=>{
+        if(epoch!==speechEpoch)return;nativeUtterance=null;speaking=false;$('classroom').classList.remove('speaking');
+        if(event.error==='not-allowed'){voiceQueue.unshift(entry);text('voiceStatus','Microsoft An đã sẵn sàng. Mở nguồn trong ứng dụng phát có bật tự phát âm thanh.');}
+        else playSpeech();
+      };
+      if(window.speechSynthesis.paused)window.speechSynthesis.resume();
+      window.speechSynthesis.speak(utterance);return;
+    }
+    speechPlayer.src=entry.url;
     try {await speechPlayer.play();$('classroom').classList.add('speaking');}
     catch {speaking=false;voiceQueue.unshift(entry);text('voiceStatus','Hãy dùng cửa sổ game riêng để âm thanh tự phát.');}
   }
   function syncSpeech(s){
-    if(voiceRound!==s.question.round){voiceRound=s.question.round;voiceQueue=[];speechPlayer.pause();speechPlayer.removeAttribute('src');speaking=false;$('classroom').classList.remove('speaking');}
-    if(s.paused){speechPlayer.pause();}
-    else if(speaking && speechPlayer.paused)speechPlayer.play().catch(()=>{speaking=false;});
-    const entries=s.narration?.events || [];
+    findOriginalVoice();
+    // Keep the existing server-generated Microsoft An audio on the local PC.
+    // Render can use the exact same installed voice directly on Windows.
+    const mode=s.cloud&&browserVoice?'native':'audio';
+    if(mode!==speechMode){stopSpeech();voiceQueue=[];voiceSeen.clear();speechMode=mode;}
+    if(voiceRound!==s.question.round){voiceRound=s.question.round;voiceQueue=[];stopSpeech();}
+    if(s.paused){if(speechMode==='native')window.speechSynthesis.pause();else speechPlayer.pause();}
+    else if(speaking){if(speechMode==='native'){if(window.speechSynthesis.paused)window.speechSynthesis.resume();}else if(speechPlayer.paused)speechPlayer.play().catch(()=>{speaking=false;});}
+    if(s.cloud&&!browserVoice&&Date.now()<voiceProbeUntil)return;
+    const entries=(speechMode==='native'?s.narration?.announcements||s.narration?.events:s.narration?.events) || [];
     for(const e of entries){
       if(voiceSeen.has(e.id))continue;voiceSeen.add(e.id);
       if(voiceSeen.size>500)voiceSeen.delete(voiceSeen.values().next().value);
       if(e.round!==s.question.round || Date.now()-e.at>30000 || (e.kind==='question'&&s.question.revealed))continue;
       if(voiceQueue.length<4)voiceQueue.push(e);
     }
-    text('voiceStatus',s.narration?.status==='ready'?`Giọng tiếng Việt: ${s.narration.voice}${sound?' · Đã bật':' · Đang tắt trên bảng điều khiển'}`:`Giọng đọc: ${s.narration?.error || 'Đang chuẩn bị…'}`);
+    text('voiceStatus',speechMode==='native'?`Giọng tiếng Việt: Microsoft An trên PC${sound?' · Đã bật':' · Đang tắt trên bảng điều khiển'}`:s.narration?.status==='ready'?`Giọng tiếng Việt: ${s.narration.voice}${sound?' · Đã bật':' · Đang tắt trên bảng điều khiển'}`:`Giọng đọc: ${s.narration?.error || 'Đang chuẩn bị…'}`);
     if(sound)playSpeech();
   }
   async function unlockVoice(){
     sound=true; audio ||= new (window.AudioContext || window.webkitAudioContext)();await audio.resume();
-    if(!voiceQueue.length && !speaking){const entry=[...(latest?.narration?.events || [])].reverse().find(e=>e.round===latest.question.round);if(entry)voiceQueue.push(entry);}
+    if(!voiceQueue.length && !speaking){const entries=speechMode==='native'?latest?.narration?.announcements||latest?.narration?.events:latest?.narration?.events;const entry=[...(entries||[])].reverse().find(e=>e.round===latest.question.round);if(entry)voiceQueue.push(entry);}
     await playSpeech();
   }
   const html = (id, value) => { if ($(id).innerHTML !== value) $(id).innerHTML = value; };
@@ -217,7 +249,7 @@
   $('soundBtn').addEventListener('click',handle(async()=>{
     audio ||= new (window.AudioContext || window.webkitAudioContext)(); await audio.resume(); sound=!sound;
     $('soundBtn').setAttribute('aria-pressed',sound); text('soundBtn',sound?'Dừng nghe thử':'Nghe thử tại bảng điều khiển');
-    if(sound)await unlockVoice();else{speechPlayer.pause();speaking=false;voiceQueue=[];$('classroom').classList.remove('speaking');}
+    if(sound)await unlockVoice();else{stopSpeech();voiceQueue=[];}
   }));
   text('obsUrl',`${location.origin}/?obs=1`);
   // OBS can enable audio with one click through its Interact window.
